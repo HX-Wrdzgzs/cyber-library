@@ -4,7 +4,7 @@
 
 Cyber Library is an open, machine-readable and AI-assisted map of books and published knowledge.
 
-This repository contains an end-to-end local system: bibliographic ingestion, ISBN/Work/Edition normalization, evidence-aware analysis, lexical + semantic retrieval, multi-source reconciliation, knowledge graphs, a scalable ISBN Universe, a web explorer, and offline scale/index tooling.
+This repository contains an end-to-end local system: bibliographic ingestion, ISBN/Work/Edition normalization, evidence-aware analysis, lexical + semantic retrieval, multi-source reconciliation, knowledge graphs, a scalable ISBN Universe, a web explorer, and offline scale/index/refresh tooling.
 
 ## Highlights
 
@@ -12,6 +12,7 @@ This repository contains an end-to-end local system: bibliographic ingestion, IS
 - ISBN-10 / ISBN-13 validation and normalization
 - Open Library low-volume resolver
 - Resumable Open Library monthly dump bootstrap
+- Bounded checkpointed Open Library incremental refresh between dump snapshots
 - SQLite catalog with FTS fallback search
 - Optional OpenAI-compatible embeddings and hybrid lexical/semantic ranking
 - Pluggable external-source registry and persisted entity links
@@ -59,7 +60,7 @@ The recommended bulk path is the official monthly dumps, not aggressive API craw
 cyber-library bootstrap-openlibrary
 ```
 
-The command downloads the latest authors / works / editions dumps with HTTP Range resume support, imports them into SQLite, rebuilds the search/ISBN indexes, and generates scalable ISBN Universe density tiles. Files are stored under `.cyber-library/` by default.
+The command downloads the latest authors / works / editions dumps with HTTP Range resume support, imports them into SQLite, rebuilds the search/ISBN indexes, generates scalable ISBN Universe density tiles, and seeds the incremental-refresh checkpoint from the newest dump `last_modified` value. Files are stored under `.cyber-library/` by default.
 
 To import already-downloaded dumps:
 
@@ -70,6 +71,20 @@ cyber-library import-dump \
   ol_dump_editions_latest.txt.gz \
   --db .cyber-library/catalog.sqlite3
 ```
+
+## Incremental catalog refresh
+
+Monthly dumps remain the authoritative bulk path. Between snapshots, a bounded RecentChanges refresher can update a dump-backed catalog without pretending the experimental API is a bulk ingestion service.
+
+```bash
+cyber-library-refresh status --db .cyber-library/catalog.sqlite3
+cyber-library-refresh run \
+  --db .cyber-library/catalog.sqlite3 \
+  --max-changes 250 \
+  --max-documents 500
+```
+
+The checkpoint advances only after the complete requested window is observed and every selected document succeeds. Truncated windows or document failures leave the checkpoint unchanged; use a newer monthly dump when the delta has grown too large. See [`docs/refresh.md`](docs/refresh.md).
 
 ## Scale maintenance
 
@@ -222,10 +237,10 @@ ISBN is an edition identifier, not a universal definition of a book and not a su
 ## Repository layout
 
 ```text
-src/cyber_library/   catalog, analysis, retrieval, sources, API and scale tooling
+src/cyber_library/   catalog, analysis, retrieval, sources, API, refresh and scale tooling
 web/                 browser explorer
 schemas/             machine-readable entity/analysis schemas
-docs/                architecture, API, scaling, semantic search, sources and deployment
+docs/                architecture, API, scaling, refresh, semantic search, sources and deployment
 tests/               unit tests
 references/          upstream/prior-art references
 ```

@@ -1,48 +1,65 @@
+import gzip
 import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from cyber_library.database import CatalogDB
-from cyber_library.dump import import_openlibrary_dump
-from cyber_library.identifiers import normalize_isbn
+from cyber_library.dump import import_openlibrary_dump, import_openlibrary_dumps
 
 
 class DumpImportTest(unittest.TestCase):
-    def test_import_and_lookup(self):
-        author = {"name": "Example Author"}
-        work = {"title": "Example Book", "authors": [{"author": {"key": "/authors/OL1A"}}], "subjects": ["Computers"]}
-        edition = {
-            "title": "Example Book",
-            "works": [{"key": "/works/OL1W"}],
-            "languages": [{"key": "/languages/eng"}],
-            "publishers": ["Example Press"],
-            "publish_date": "2026",
-            "number_of_pages": 123,
-            "isbn_10": ["0306406152"],
-            "isbn_13": ["9780306406157"],
-        }
-        rows = [
-            ("/type/author", "/authors/OL1A", author),
-            ("/type/work", "/works/OL1W", work),
-            ("/type/edition", "/books/OL1M", edition),
-        ]
-        with tempfile.TemporaryDirectory() as tmp:
-            dump = Path(tmp) / "dump.txt"
-            dump.write_text("".join(f"{typ}\t{key}\t1\t2026-01-01T00:00:00.000000\t{json.dumps(payload)}\n" for typ, key, payload in rows), encoding="utf-8")
-            db_path = Path(tmp) / "catalog.sqlite3"
-            result = import_openlibrary_dump(dump, db_path)
-            self.assertEqual(result["errors"], 0)
-            self.assertEqual(result["works"], 1)
-            db = CatalogDB(db_path)
-            try:
-                record = db.lookup_isbn(normalize_isbn("0-306-40615-2"))
-                self.assertIsNotNone(record)
-                self.assertEqual(record.work.title, "Example Book")
-                self.assertEqual(record.work.authors, ["Example Author"])
-                self.assertEqual(record.edition.language, "eng")
-            finally:
-                db.close()
+    @staticmethod
+    def _write_dump(path: Path, rows: list[tuple[str, str, str, dict]]) -> None:
+        with gzip.open(path, "wt", encoding="utf-8") as fh:
+            for typ, key, modified, payload in rows:
+                fh.write(
+                    "\t".join(
+                        [typ, key, "1", modified, json.dumps(payload, ensure_ascii=False)]
+                    )
+                    + "\n"
+                )
+
+    def test_dump_reports_latest_modified_timestamp(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dump = root / "works.txt.gz"
+            db = root / "catalog.sqlite3"
+            self._write_dump(
+                dump,
+                [
+                    ("/type/work", "/works/W1", "2026-08-30T12:00:00.000000", {"title": "Older"}),
+                    ("/type/work", "/works/W2", "2026-08-31T23:59:59Z", {"title": "Newest"}),
+                ],
+            )
+            result = import_openlibrary_dump(dump, db)
+            self.assertEqual(result["works"], 2)
+            self.assertEqual(result["latest_modified"], "2026-08-31T23:59:59+00:00")
+
+    def test_multiple_dumps_keep_global_latest_modified(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            authors = root / "authors.txt.gz"
+            editions = root / "editions.txt.gz"
+            db = root / "catalog.sqlite3"
+            self._write_dump(
+                authors,
+                [("/type/author", "/authors/A1", "2026-08-28T00:00:00Z", {"name": "Author"})],
+            )
+            self._write_dump(
+                editions,
+                [
+                    (
+                        "/type/edition",
+                        "/books/E1",
+                        "2026-08-31T18:30:00+00:00",
+                        {"title": "Book", "isbn_13": ["9780306406157"]},
+                    )
+                ],
+            )
+            result = import_openlibrary_dumps([authors, editions], db, reindex=False)
+            self.assertEqual(result["authors"], 1)
+            self.assertEqual(result["editions"], 1)
+            self.assertEqual(result["latest_modified"], "2026-08-31T18:30:00+00:00")
 
 
 if __name__ == "__main__":

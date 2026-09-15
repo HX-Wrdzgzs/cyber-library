@@ -28,10 +28,10 @@
 - [x] precomputed spatial density tiles and progressive map rendering
 - [x] optional OpenAI-compatible vector embedding backend
 - [x] incremental embedding index and hybrid lexical/semantic ranking
+- [x] incremental Open Library refresh pipeline with safe checkpoints
 - [ ] dedicated bulk importer benchmarks for tens of millions of editions
 - [ ] PostgreSQL/PostGIS backend option
 - [ ] OpenSearch backend option
-- [ ] incremental Open Library refresh pipeline
 
 ## v1.2 — More identifiers / sources
 

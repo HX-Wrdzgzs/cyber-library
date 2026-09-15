@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0 — 2026-09-16
+
+- Added bounded Open Library RecentChanges refresh for dump-backed catalogs.
+- Added persistent refresh checkpoints with fail-safe advancement rules.
+- Added Work/Author dependent search reindexing during incremental refresh.
+- Added optional Universe tile rebuild after edition changes.
+- Added dump `last_modified` tracking and automatic checkpoint seeding after complete bootstrap imports.
+- Added `cyber-library-refresh` CLI with `status`, `seed` and `run` commands.
+- Added refresh, dump timestamp and bootstrap checkpoint tests.
+
 ## 1.2.1 — 2026-09-16
 
 - Added Crossref ISBN reconciliation using the public REST `filter=isbn:` path.
@@ -53,4 +63,3 @@
 - Initial catalog prototype.
 - Open Library dump import.
 - Work / Edition model.
-- Low-volume ISBN resolution.
