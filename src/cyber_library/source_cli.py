@@ -7,8 +7,8 @@ from .cache import JsonCache
 from .database import CatalogDB
 from .identifiers import InvalidISBN, normalize_isbn
 from .reconciliation import links_for, reconcile_isbn
+from .sources.base import ExternalSourceError
 from .sources.registry import register_builtin_sources
-from .sources.wikidata import WikidataError
 
 
 def _dump(value) -> None:
@@ -36,6 +36,12 @@ def main() -> int:
     cmd.add_argument("--cache", default=".cyber-library/cache.sqlite3")
     cmd.add_argument("--contact")
 
+    cmd = sub.add_parser("reconcile-all", help="run all registered ISBN-capable sources")
+    cmd.add_argument("isbn")
+    cmd.add_argument("--db", default=".cyber-library/catalog.sqlite3")
+    cmd.add_argument("--cache", default=".cyber-library/cache.sqlite3")
+    cmd.add_argument("--contact")
+
     cmd = sub.add_parser("links", help="show persisted external links for a local ISBN")
     cmd.add_argument("isbn")
     cmd.add_argument("--db", default=".cyber-library/catalog.sqlite3")
@@ -59,13 +65,27 @@ def main() -> int:
         finally:
             cache.close()
 
-    if args.command == "reconcile":
+    if args.command in {"reconcile", "reconcile-all"}:
         cache = JsonCache(args.cache)
         db = CatalogDB(args.db)
         try:
-            adapter = sources.create(args.source, cache=cache, contact=args.contact)
-            _dump(reconcile_isbn(db, adapter, args.isbn))
-            return 0
+            names = [args.source] if args.command == "reconcile" else sources.names()
+            results = []
+            failures = []
+            for name in names:
+                try:
+                    adapter = sources.create(name, cache=cache, contact=args.contact)
+                    if "isbn-reconciliation" not in adapter.capabilities:
+                        continue
+                    results.append(reconcile_isbn(db, adapter, args.isbn))
+                except ExternalSourceError as exc:
+                    failures.append({"source": name, "error": str(exc)})
+            payload = {"isbn13": normalize_isbn(args.isbn), "results": results, "failures": failures}
+            if args.command == "reconcile":
+                _dump(results[0] if results else {"source": names[0], "matches": [], "failures": failures})
+            else:
+                _dump(payload)
+            return 0 if results or not failures else 4
         except KeyError as exc:
             _dump({"error": "unknown_source", "detail": str(exc)})
             return 2
@@ -75,9 +95,6 @@ def main() -> int:
         except LookupError as exc:
             _dump({"error": "not_in_local_catalog", "detail": str(exc)})
             return 3
-        except WikidataError as exc:
-            _dump({"error": "source_error", "detail": str(exc)})
-            return 4
         finally:
             db.close()
             cache.close()

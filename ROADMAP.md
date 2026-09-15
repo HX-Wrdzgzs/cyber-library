@@ -37,7 +37,8 @@
 
 - [x] configurable source adapter / registry contract
 - [x] Wikidata ISBN entity reconciliation and persisted external links
-- [ ] DOI / Crossref adapter for book-like scholarly works
+- [x] Crossref ISBN → DOI reconciliation
+- [x] multi-source reconciliation with isolated source failures
 - [ ] library authority records
 - [ ] multilingual subject normalization
 

@@ -26,3 +26,4 @@ jobs:
       - run: cyber-library-semantic status --db /tmp/cyber-semantic.sqlite3
       - run: cyber-library-source list
       - run: cyber-library-source status wikidata --cache /tmp/cyber-source-cache.sqlite3
+      - run: cyber-library-source status crossref --cache /tmp/cyber-source-cache.sqlite3

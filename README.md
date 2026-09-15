@@ -4,7 +4,7 @@
 
 Cyber Library is an open, machine-readable and AI-assisted map of books and published knowledge.
 
-This repository contains an end-to-end local system: bibliographic ingestion, ISBN/Work/Edition normalization, evidence-aware analysis, lexical + semantic retrieval, source reconciliation, knowledge graphs, a scalable ISBN Universe, a web explorer, and offline scale/index tooling.
+This repository contains an end-to-end local system: bibliographic ingestion, ISBN/Work/Edition normalization, evidence-aware analysis, lexical + semantic retrieval, multi-source reconciliation, knowledge graphs, a scalable ISBN Universe, a web explorer, and offline scale/index tooling.
 
 ## Highlights
 
@@ -16,6 +16,8 @@ This repository contains an end-to-end local system: bibliographic ingestion, IS
 - Optional OpenAI-compatible embeddings and hybrid lexical/semantic ranking
 - Pluggable external-source registry and persisted entity links
 - Wikidata ISBN reconciliation
+- Crossref ISBN → DOI reconciliation
+- Multi-source reconciliation with isolated failures
 - Subject taxonomy and provenance/evidence tracking
 - Catalog/source/full-text analysis with explicit evidence levels
 - Optional OpenAI-compatible LLM enhancement
@@ -107,19 +109,13 @@ When embeddings are configured and the selected model has indexed editions, norm
 
 Cyber Library keeps external entity systems separate from canonical bibliographic records. Source adapters expose a common contract and external links are persisted with their own provenance.
 
-List built-in sources:
-
 ```bash
 cyber-library-source list
-```
-
-Inspect Wikidata support without making a network request:
-
-```bash
 cyber-library-source status wikidata
+cyber-library-source status crossref
 ```
 
-Reconcile an ISBN that already exists in the local catalog:
+Reconcile against one source:
 
 ```bash
 cyber-library-source reconcile 9780306406157 \
@@ -127,14 +123,21 @@ cyber-library-source reconcile 9780306406157 \
   --db .cyber-library/catalog.sqlite3
 ```
 
-Read the stored external links later without contacting Wikidata:
+Run all ISBN-capable sources in one pass:
+
+```bash
+cyber-library-source reconcile-all 9780306406157 \
+  --db .cyber-library/catalog.sqlite3
+```
+
+A failed source is reported independently; successful source matches are still stored. Read all persisted links later without contacting upstream services:
 
 ```bash
 cyber-library-source links 9780306406157 \
   --db .cyber-library/catalog.sqlite3
 ```
 
-The Wikidata adapter uses ISBN-13 property `P212` and ISBN-10 property `P957`. See [`docs/sources.md`](docs/sources.md).
+The Wikidata adapter uses ISBN-13 `P212` / ISBN-10 `P957`. The Crossref adapter uses the exact `filter=isbn:` REST query and retains DOI metadata. See [`docs/sources.md`](docs/sources.md).
 
 ## ISBN Universe
 
@@ -214,7 +217,7 @@ Author ─────┐
      ISBN    ISBN   other IDs
 ```
 
-ISBN is an edition identifier, not a universal definition of a book and not a subject classification system. External identifiers such as Wikidata IDs are linked rather than silently merged into source records.
+ISBN is an edition identifier, not a universal definition of a book and not a subject classification system. External identifiers such as Wikidata IDs and DOIs are linked rather than silently merged into source records.
 
 ## Repository layout
 
@@ -233,4 +236,4 @@ The original Cyber Library source in this repository is MIT licensed. Third-part
 
 ## Project status
 
-The local end-to-end architecture is functional. It does not claim that Open Library, Wikidata, ISBN, or any other single source contains every book ever created. Coverage grows by adding legitimate sources and identifiers while keeping provenance explicit.
+The local end-to-end architecture is functional. It does not claim that Open Library, Wikidata, Crossref, ISBN, or any other single source contains every book ever created. Coverage grows by adding legitimate sources and identifiers while keeping provenance explicit.

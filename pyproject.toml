@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cyber-library"
-version = "1.2.0"
+version = "1.2.1"
 description = "Evidence-aware global book catalog, knowledge graph, analysis engine and ISBN universe."
 readme = "README.md"
 requires-python = ">=3.11"

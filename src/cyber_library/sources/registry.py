@@ -46,8 +46,15 @@ def registry() -> SourceRegistry:
 
 
 def register_builtin_sources() -> SourceRegistry:
+    from .crossref import CrossrefAdapter
     from .wikidata import WikidataAdapter
 
-    if "wikidata" not in _registry.names():
-        _registry.register("wikidata", WikidataAdapter)
+    builtins: dict[str, AdapterFactory] = {
+        "crossref": CrossrefAdapter,
+        "wikidata": WikidataAdapter,
+    }
+    existing = set(_registry.names())
+    for name, factory in builtins.items():
+        if name not in existing:
+            _registry.register(name, factory)
     return _registry

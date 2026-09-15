@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1 — 2026-09-16
+
+- Added Crossref ISBN reconciliation using the public REST `filter=isbn:` path.
+- Added DOI links, Crossref title/type/publisher/author/date metadata and polite-pool contact support.
+- Added `reconcile-all` so registered ISBN sources can run in one pass while isolating individual source failures.
+- Added shared `ExternalSourceError` base class and Crossref/Wikidata adapter tests with mocked HTTP responses.
+
 ## 1.2.0 — 2026-09-16
 
 - Added a reusable external `SourceAdapter` protocol and source registry.

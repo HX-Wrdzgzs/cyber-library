@@ -4,6 +4,10 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
 
+class ExternalSourceError(RuntimeError):
+    """Base class for low-volume external source failures."""
+
+
 @dataclass(slots=True)
 class SourceMatch:
     source: str
