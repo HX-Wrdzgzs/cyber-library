@@ -22,3 +22,5 @@ jobs:
       - run: cyber-library isbn 0-306-40615-2
       - run: cyber-library space 9780306406157
       - run: cyber-library categories
+      - run: cyber-library-scale status --db /tmp/cyber-scale.sqlite3
+      - run: cyber-library-semantic status --db /tmp/cyber-semantic.sqlite3

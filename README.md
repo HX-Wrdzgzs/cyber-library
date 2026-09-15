@@ -4,7 +4,7 @@
 
 Cyber Library is an open, machine-readable and AI-assisted map of books and published knowledge.
 
-This repository now contains an end-to-end local system: bibliographic ingestion, ISBN/Work/Edition normalization, evidence-aware analysis, search, knowledge graphs, a scalable ISBN Universe, a web explorer, and offline scale/index tooling.
+This repository contains an end-to-end local system: bibliographic ingestion, ISBN/Work/Edition normalization, evidence-aware analysis, lexical + semantic retrieval, knowledge graphs, a scalable ISBN Universe, a web explorer, and offline scale/index tooling.
 
 ## Highlights
 
@@ -13,6 +13,7 @@ This repository now contains an end-to-end local system: bibliographic ingestion
 - Open Library low-volume resolver
 - Resumable Open Library monthly dump bootstrap
 - SQLite catalog with FTS fallback search
+- Optional OpenAI-compatible embeddings and hybrid lexical/semantic ranking
 - Subject taxonomy and provenance/evidence tracking
 - Catalog/source/full-text analysis with explicit evidence levels
 - Optional OpenAI-compatible LLM enhancement
@@ -106,6 +107,39 @@ cyber-library search "machine learning" \
 
 The local catalog uses SQLite FTS when available and a fallback query path otherwise.
 
+## Optional semantic / hybrid search
+
+Cyber Library can use an OpenAI-compatible embeddings endpoint without making it a hard dependency.
+
+```bash
+export CYBER_LIBRARY_EMBEDDING_BASE_URL='http://127.0.0.1:8000/v1'
+export CYBER_LIBRARY_EMBEDDING_MODEL='your-embedding-model'
+export CYBER_LIBRARY_EMBEDDING_API_KEY='optional-key'
+```
+
+Build the local vector index incrementally:
+
+```bash
+cyber-library-semantic index --db .cyber-library/catalog.sqlite3
+```
+
+Inspect it:
+
+```bash
+cyber-library-semantic status --db .cyber-library/catalog.sqlite3
+```
+
+Or run semantic-only retrieval:
+
+```bash
+cyber-library-semantic search "introductory books about galaxies" \
+  --db .cyber-library/catalog.sqlite3
+```
+
+When embeddings are configured and the selected model already has indexed editions, normal Cyber Library search automatically combines lexical and semantic ranking using Reciprocal Rank Fusion. If the embedding backend is unavailable, search falls back to the local lexical index rather than failing the whole request.
+
+The built-in SQLite vector path is deliberately bounded and intended for progressive/popular-book indexing, local collections and development deployments—not as a claim that SQLite should scan hundreds of millions of dense vectors. See [`docs/semantic.md`](docs/semantic.md).
+
 ## ISBN Universe
 
 Map an ISBN into Cyber Library's independent Hilbert coordinate space:
@@ -173,7 +207,7 @@ GET  /api/universe?min_x=...&max_x=...&min_y=...&max_y=...&z=...
 POST /api/analyze-text
 ```
 
-`/api/universe` can return either `mode: "tiles"` or `mode: "points"`; clients should support both.
+`/api/search` automatically becomes hybrid when a configured embedding model has a local index. `/api/universe` can return either `mode: "tiles"` or `mode: "points"`; clients should support both.
 
 ## Docker
 
@@ -204,10 +238,10 @@ ISBN is an edition identifier, not a universal definition of a book and not a su
 ## Repository layout
 
 ```text
-src/cyber_library/   core catalog, analysis, API and scale tooling
+src/cyber_library/   core catalog, analysis, retrieval, API and scale tooling
 web/                 browser explorer
 schemas/             machine-readable entity/analysis schemas
-docs/                architecture, API, scaling and deployment docs
+docs/                architecture, API, scaling, semantic search and deployment docs
 tests/               unit tests
 references/          upstream/prior-art references
 ```

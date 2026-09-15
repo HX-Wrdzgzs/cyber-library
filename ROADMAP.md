@@ -21,15 +21,16 @@
 - [x] Docker
 - [x] Python 3.11–3.13 CI
 
-## v1.1 — Scale
+## v1.1 — Scale and retrieval
 
 - [x] one-command resumable Open Library dump bootstrap
 - [x] resumable offline ISBN-universe index builder
 - [x] precomputed spatial density tiles and progressive map rendering
+- [x] optional OpenAI-compatible vector embedding backend
+- [x] incremental embedding index and hybrid lexical/semantic ranking
 - [ ] dedicated bulk importer benchmarks for tens of millions of editions
 - [ ] PostgreSQL/PostGIS backend option
 - [ ] OpenSearch backend option
-- [ ] vector embedding backend option
 - [ ] incremental Open Library refresh pipeline
 
 ## v1.2 — More identifiers / sources

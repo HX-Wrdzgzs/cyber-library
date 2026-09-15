@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.1 — 2026-09-16
+
+- Added optional OpenAI-compatible embedding client.
+- Added persistent per-edition SQLite embedding index keyed by model.
+- Added resumable/incremental semantic indexing CLI.
+- Added semantic-only search and RRF hybrid lexical/semantic ranking.
+- Added graceful lexical fallback when the embedding service is unavailable.
+- Added embedding status reporting, environment template and CI coverage.
+
 ## 1.1.0 — 2026-09-16
 
 - Added resumable Open Library bootstrap downloads and one-command catalog creation.

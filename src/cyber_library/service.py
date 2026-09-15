@@ -12,6 +12,7 @@ from .intelligence import analyze_record, full_text_analysis
 from .llm import LLMClient
 from .models import Analysis, BookRecord, Edition, Provenance, Work
 from .scale import MAX_TILE_LEVEL, query_universe_tiles
+from .semantic import EmbeddingClient, EmbeddingError, embedding_count, hybrid_search
 from .sources.openlibrary import NotFound, OpenLibraryClient
 from .taxonomy import categories as all_categories
 from .universe import isbn_space_point, space_metadata
@@ -24,6 +25,7 @@ class CatalogService:
         self.catalog = CatalogDB(catalog_db_path) if catalog_db_path else None
         self.live_fallback = live_fallback
         self.llm = LLMClient.from_env() if use_llm else None
+        self.embedding = EmbeddingClient.from_env()
 
     @staticmethod
     def _analysis_mode(value: bool | str | None) -> str:
@@ -45,10 +47,27 @@ class CatalogService:
         return record
 
     def search(self, query: str, limit: int = 20, category: str | None = None, language: str | None = None, year_from: int | None = None, year_to: int | None = None) -> list[dict]:
-        results=[]
+        lexical=[]
         if self.catalog:
-            results=self.catalog.search(query,limit=limit,category=category,language=language,year_from=year_from,year_to=year_to)
-        if results or not self.live_fallback:return results
+            lexical=self.catalog.search(query,limit=max(limit * 2, 30),category=category,language=language,year_from=year_from,year_to=year_to)
+            if self.embedding and embedding_count(self.catalog, self.embedding.model_name) > 0:
+                try:
+                    hybrid=hybrid_search(
+                        self.catalog,
+                        self.embedding,
+                        query,
+                        lexical,
+                        limit=limit,
+                        category=category,
+                        language=language,
+                        year_from=year_from,
+                        year_to=year_to,
+                    )
+                    if hybrid:
+                        return hybrid
+                except EmbeddingError:
+                    pass
+        if lexical or not self.live_fallback:return lexical[:limit]
         live=self.openlibrary.search_books(query,limit)
         if category: live=[item for item in live if category in item.get("categories",[])]
         if language: live=[item for item in live if item.get("language")==language]
@@ -105,6 +124,8 @@ class CatalogService:
     def stats(self) -> dict[str, int | bool | str | None]:
         result = self.catalog.stats() if self.catalog else {"works":0,"editions":0,"authors":0,"identifiers":0,"analyses":0,"documents":0}
         result["local_catalog"]=bool(self.catalog); result["live_fallback"]=self.live_fallback; result["llm_enabled"]=self.llm is not None; result["llm_model"]=self.llm.model_name if self.llm else None
+        result["embedding_enabled"]=self.embedding is not None; result["embedding_model"]=self.embedding.model_name if self.embedding else None
+        result["embedding_indexed"]=embedding_count(self.catalog,self.embedding.model_name) if self.catalog and self.embedding else 0
         return result
 
     def close(self) -> None:
