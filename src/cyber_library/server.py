@@ -26,7 +26,7 @@ def _float(value: str | None, default: float) -> float:
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "CyberLibraryHTTP/1.1"
+    server_version = "CyberLibraryHTTP/1.4"
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
@@ -76,6 +76,30 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
             except SourceError as exc:
                 return self._json({"error": "upstream_error", "detail": str(exc)}, HTTPStatus.BAD_GATEWAY)
+        if parsed.path == "/api/knowledge/concept":
+            subject = (query.get("subject") or [""])[0].strip()
+            if not subject:
+                return self._json({"error": "missing_subject"}, HTTPStatus.BAD_REQUEST)
+            try:
+                return self._json(self.server.catalog.concept_graph(subject, max(1, min(_int((query.get("limit") or ["40"])[0], 40) or 40, 200))))
+            except ValueError as exc:
+                return self._json({"error": "knowledge_failed", "detail": str(exc)}, HTTPStatus.BAD_REQUEST)
+        if parsed.path == "/api/knowledge/author":
+            name = (query.get("name") or [""])[0].strip()
+            if not name:
+                return self._json({"error": "missing_author"}, HTTPStatus.BAD_REQUEST)
+            try:
+                return self._json(self.server.catalog.author_timeline(name, max(1, min(_int((query.get("limit") or ["100"])[0], 100) or 100, 500))))
+            except ValueError as exc:
+                return self._json({"error": "knowledge_failed", "detail": str(exc)}, HTTPStatus.BAD_REQUEST)
+        if parsed.path == "/api/knowledge/publisher":
+            name = (query.get("name") or [""])[0].strip()
+            if not name:
+                return self._json({"error": "missing_publisher"}, HTTPStatus.BAD_REQUEST)
+            try:
+                return self._json(self.server.catalog.publisher_map(name, max(1, min(_int((query.get("limit") or ["150"])[0], 150) or 150, 500))))
+            except ValueError as exc:
+                return self._json({"error": "knowledge_failed", "detail": str(exc)}, HTTPStatus.BAD_REQUEST)
         if parsed.path == "/api/universe":
             try:
                 zoom_level = _int((query.get("z") or [None])[0])

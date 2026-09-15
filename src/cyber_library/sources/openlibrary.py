@@ -13,7 +13,7 @@ from ..cache import JsonCache
 from ..evidence import openlibrary_evidence, text_value, toc_titles
 from ..identifiers import normalize_isbn
 from ..models import Analysis, BookRecord, Edition, Provenance, Work
-from ..taxonomy import classify
+from ..taxonomy import classify, normalize_subjects
 
 BASE = "https://openlibrary.org"
 
@@ -37,7 +37,7 @@ class OpenLibraryClient:
         self.cache = cache
         self.timeout = timeout
         self.contact = (contact or os.getenv("CYBER_LIBRARY_CONTACT", "")).strip()
-        self.user_agent = "CyberLibrary/1.0.0" + (f" ({self.contact})" if self.contact else "")
+        self.user_agent = "CyberLibrary/2.0" + (f" ({self.contact})" if self.contact else "")
         self.min_interval = 0.36 if self.contact else 1.05
         self._rate_lock = threading.Lock()
         self._last_request = 0.0
@@ -112,7 +112,7 @@ class OpenLibraryClient:
         if work_raw is not None and wkey:
             wid = wkey.rsplit("/", 1)[-1]
             description = text_value(work_raw.get("description"))
-            subjects = [str(x) for x in (work_raw.get("subjects") or []) if isinstance(x, str)]
+            subjects = normalize_subjects([str(x) for x in (work_raw.get("subjects") or []) if isinstance(x, str)], 128)
             work = Work(id=f"openlibrary:work:{wid}", title=str(work_raw.get("title") or edition_raw.get("title") or ""), authors=author_names, subjects=subjects, description=description, first_sentence=text_value(work_raw.get("first_sentence")), categories=classify(subjects, str(work_raw.get("title") or ""), description or ""), source_refs=[f"openlibrary:{wkey}"])
         ids: dict[str, list[str]] = {"isbn13": [isbn13]}
         field_map = {"isbn10": "isbn_10", "isbn13": "isbn_13", "lccn": "lccn", "oclc": "oclc_numbers"}
@@ -157,7 +157,7 @@ class OpenLibraryClient:
                 continue
             isbns = [str(x).replace("-", "") for x in (doc.get("isbn") or [])]
             isbn = next((x for x in isbns if len(x) == 13 and x[:3] in {"978", "979"}), None)
-            subjects = [str(x) for x in (doc.get("subject") or [])[:24]]
+            subjects = normalize_subjects([str(x) for x in (doc.get("subject") or [])[:48]], 24)
             cover_id = doc.get("cover_i")
             cover_url = f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg?default=false" if cover_id else None
             key = str(doc.get("key") or "")

@@ -12,6 +12,7 @@ from .cache import JsonCache
 from .database import CatalogDB
 from .scale import build_universe_tiles
 from .sources.openlibrary import BASE, NotFound, OpenLibraryClient, SourceError
+from .taxonomy import normalize_subjects
 
 MAX_CHANGES_PER_RUN = 1000
 MAX_DOCUMENTS_PER_RUN = 1000
@@ -36,6 +37,14 @@ def _parse_timestamp(value: str) -> datetime:
 
 def _timestamp_text(value: datetime) -> str:
     return value.astimezone(timezone.utc).isoformat()
+
+
+def _normalize_work(raw: dict) -> dict:
+    subjects = [str(x) for x in (raw.get("subjects") or []) if isinstance(x, str)]
+    if not subjects:
+        return raw
+    normalized = normalize_subjects(subjects, 128)
+    return raw if normalized == subjects else {**raw, "subjects": normalized}
 
 
 class OpenLibraryRecentClient:
@@ -199,13 +208,7 @@ def refresh_openlibrary(
     max_documents: int = 500,
     rebuild_universe: bool = False,
 ) -> dict[str, Any]:
-    """Apply a bounded recent-change window to a dump-backed local catalog.
-
-    The checkpoint advances only when the requested window was fully observed and
-    every selected document was applied successfully. If the window is truncated,
-    the caller should refresh from a newer dump instead of turning this API into a
-    bulk ingestion mechanism.
-    """
+    """Apply a bounded recent-change window to a dump-backed local catalog."""
     if max_changes < 1 or max_changes > MAX_CHANGES_PER_RUN:
         raise ValueError(f"max_changes must be between 1 and {MAX_CHANGES_PER_RUN}")
     if max_documents < 1 or max_documents > MAX_DOCUMENTS_PER_RUN:
@@ -231,7 +234,7 @@ def refresh_openlibrary(
                     catalog.upsert_author(key, raw); counts["authors"] += 1
                     counts["reindexed"] += _reindex_author(catalog, key)
                 elif key.startswith("/works/"):
-                    catalog.upsert_work(key, raw); counts["works"] += 1
+                    catalog.upsert_work(key, _normalize_work(raw)); counts["works"] += 1
                     counts["reindexed"] += _reindex_work(catalog, key)
                 elif key.startswith("/books/"):
                     catalog.upsert_edition(key, raw); counts["editions"] += 1

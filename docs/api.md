@@ -1,86 +1,50 @@
-# HTTP API
+# REST API
 
-The built-in server is intentionally small and dependency-free.
+The bundled HTTP server is intentionally dependency-light and serves both the browser explorer and JSON API.
 
-## Health
+## Catalog
 
-```http
+```text
 GET /api/health
-```
-
-## Stats
-
-```http
 GET /api/stats
-```
-
-## Categories
-
-```http
 GET /api/categories
-```
-
-## Resolve
-
-```http
-GET /api/resolve?isbn=9780306406157&analysis=auto
-```
-
-`analysis` values:
-
-- `none`
-- `catalog`
-- `source`
-- `auto`
-
-## Search
-
-```http
+GET /api/resolve?isbn=978...&analysis=auto
 GET /api/search?q=machine+learning&limit=20
+GET /api/graph?isbn=978...
 ```
 
-Optional filters:
+Search becomes hybrid automatically when a configured embedding model has locally indexed editions.
 
-- `category`
-- `language`
-- `year_from`
-- `year_to`
+## Knowledge Space
 
-## Knowledge graph
-
-```http
-GET /api/graph?isbn=9780306406157
+```text
+GET /api/knowledge/concept?subject=Machine%20learning&limit=40
+GET /api/knowledge/author?name=Author%20Name&limit=100
+GET /api/knowledge/publisher?name=Publisher%20Name&limit=150
 ```
 
-Returns `nodes`, `edges`, and a root Work ID.
+These endpoints require a local catalog and derive their relationships from stored catalog facts.
 
 ## ISBN Universe
 
-```http
-GET /api/universe?min_x=0&max_x=1&min_y=0&max_y=1&limit=2500
+```text
+GET /api/universe?min_x=0&max_x=1&min_y=0&max_y=1&z=0&limit=5000
 ```
 
-Optional:
+Responses use `mode: "tiles"` for available low-zoom precomputed density data and `mode: "points"` for close/filtered views.
 
-- `category`
-- `q`
+## Lawful text analysis
 
-## Analyze authorized text
-
-```http
+```text
 POST /api/analyze-text
 Content-Type: application/json
 
 {
-  "title": "Example",
-  "isbn": "9780306406157",
+  "title": "optional",
+  "isbn": "optional",
   "rights": "user-provided",
-  "text": "...",
-  "headings": ["Chapter 1", "Chapter 2"]
+  "text": "..."
 }
 ```
 
-Maximum request body: 16 MiB in the built-in server.
-
-For larger production workloads, put a dedicated API server / job system in front
-of the analysis engine rather than increasing the synchronous limit indefinitely.
+Accepted rights values are defined by the content subsystem. The API refuses empty/oversized payloads and does not imply permission to process text the caller is not entitled to use.
