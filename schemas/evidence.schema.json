@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cyber-library.dev/schema/evidence.json",
+  "title": "Cyber Library Evidence Item",
+  "type": "object",
+  "required": ["kind", "text", "source_ref"],
+  "properties": {
+    "kind": {"type": "string"},
+    "text": {"type": "string"},
+    "source_ref": {"type": "string"},
+    "title": {"type": ["string", "null"]},
+    "url": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}

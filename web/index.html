@@ -1,1 +1,177 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cyber Library</title><link rel="stylesheet" href="/styles.css"></head><body><main class="shell"><header><div class="eyebrow">CYBER LIBRARY / v0.1</div><h1>在出版知识中航行。</h1><p>ISBN → Edition → Work → Subject → Intelligence。当前版本先把目录事实、证据边界和可扩展的数据层做对。</p></header><section class="panel"><form id="f"><label>ISBN</label><div class="row"><input id="isbn" value="9780140328721" placeholder="ISBN-10 / ISBN-13"><button>解析</button></div></form><p id="status">支持本地批量目录优先，也支持低频实时解析；结果会缓存。</p></section><section id="result" class="result hidden"><img id="cover" alt="Book cover" hidden><div><div><span id="level" class="pill"></span> <span id="eid"></span></div><h2 id="title"></h2><p id="authors"></p><div id="facts"></div><h3>30 秒解读</h3><p id="brief"></p><h3>Tags / Subjects</h3><div id="tags"></div><h3>目录 / 大纲 / 详细解读</h3><p id="deeper"></p><h3>思维导图（目录元数据）</h3><div id="mindmap"></div><h3>证据边界</h3><ul id="warnings"></ul></div></section></main><script src="/app.js"></script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Cyber Library</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="noise"></div>
+  <main class="shell">
+    <header class="hero">
+      <div class="eyebrow">CYBER LIBRARY / BOOK KNOWLEDGE SYSTEM</div>
+      <div class="hero-grid">
+        <div>
+          <h1>在出版知识中航行。</h1>
+          <p class="lede">检索图书、解析 ISBN、查看来源证据、生成结构化解读、知识图谱与 ISBN 宇宙。目录事实与 AI/算法分析分层保存。</p>
+        </div>
+        <div class="stats" id="stats">
+          <div><strong>—</strong><span>Works</span></div>
+          <div><strong>—</strong><span>Editions</span></div>
+          <div><strong>—</strong><span>LLM</span></div>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Main views">
+      <button class="tab active" data-tab="explore">探索</button>
+      <button class="tab" data-tab="universe">ISBN 宇宙</button>
+      <button class="tab" data-tab="fulltext">全文分析</button>
+      <button class="tab" data-tab="about">说明</button>
+    </nav>
+
+    <section class="view active" id="view-explore">
+      <div class="panel search-panel">
+        <form id="search-form">
+          <label for="query">书名 / 作者 / 主题 / ISBN</label>
+          <div class="search-row">
+            <input id="query" autocomplete="off" placeholder="例如：machine learning / 三体 / 9780306406157">
+            <select id="category"><option value="">全部分类</option></select>
+            <button class="primary" type="submit">检索</button>
+          </div>
+        </form>
+        <p class="status" id="search-status">ISBN 会直接解析；其他文本走本地目录搜索，本地无结果时可低频回退到 Open Library。</p>
+      </div>
+
+      <div class="search-results" id="search-results"></div>
+
+      <section id="book" class="book hidden">
+        <div class="book-head panel">
+          <div class="cover-wrap"><img id="cover" alt="Book cover" hidden></div>
+          <div class="book-meta">
+            <div class="meta-top">
+              <span class="pill" id="analysis-level">L0</span>
+              <span class="mono muted" id="edition-id"></span>
+            </div>
+            <h2 id="book-title"></h2>
+            <p class="authors" id="authors"></p>
+            <div class="facts" id="facts"></div>
+            <div class="tags" id="tags"></div>
+          </div>
+        </div>
+
+        <div class="detail-grid">
+          <article class="panel">
+            <div class="section-kicker">30 秒解读</div>
+            <p id="brief" class="prose"></p>
+            <div class="section-kicker">总结</div>
+            <p id="summary" class="prose"></p>
+          </article>
+
+          <article class="panel">
+            <div class="section-kicker">证据 / Provenance</div>
+            <ul id="sources" class="source-list"></ul>
+            <ul id="warnings" class="warnings"></ul>
+          </article>
+        </div>
+
+        <article class="panel">
+          <div class="section-kicker">仔细解读</div>
+          <p id="detailed" class="prose"></p>
+          <div class="mini-columns">
+            <div><h3>核心主题</h3><ul id="themes"></ul></div>
+            <div><h3>关键点</h3><ul id="key-points"></ul></div>
+          </div>
+        </article>
+
+        <div class="detail-grid">
+          <article class="panel">
+            <div class="section-kicker">目录 / 大纲</div>
+            <ol id="toc" class="toc"></ol>
+          </article>
+          <article class="panel">
+            <div class="section-kicker">章节摘要</div>
+            <div id="chapter-summaries" class="chapter-list"></div>
+          </article>
+        </div>
+
+        <div class="detail-grid">
+          <article class="panel">
+            <div class="section-kicker">思维导图</div>
+            <div id="mindmap" class="mindmap"></div>
+          </article>
+          <article class="panel graph-panel">
+            <div class="section-kicker">知识图谱</div>
+            <canvas id="graph-canvas"></canvas>
+            <p class="status" id="graph-status"></p>
+          </article>
+        </div>
+      </section>
+    </section>
+
+    <section class="view" id="view-universe">
+      <div class="panel universe-toolbar">
+        <div>
+          <label for="universe-query">在 ISBN 空间高亮</label>
+          <input id="universe-query" placeholder="主题 / 书名；留空显示本地目录">
+        </div>
+        <div>
+          <label for="universe-category">分类</label>
+          <select id="universe-category"><option value="">全部</option></select>
+        </div>
+        <button id="universe-refresh" class="primary">刷新</button>
+        <button id="universe-reset">重置视图</button>
+      </div>
+      <div class="panel universe-panel">
+        <canvas id="universe-canvas"></canvas>
+        <div class="universe-hud">
+          <span id="universe-count">0 points</span>
+          <span>滚轮缩放 · 拖动平移 · 点击图书</span>
+        </div>
+      </div>
+      <div id="universe-selected" class="panel compact hidden"></div>
+    </section>
+
+    <section class="view" id="view-fulltext">
+      <div class="panel">
+        <div class="section-kicker">本地 / 已授权全文分析</div>
+        <p class="status">服务器不需要保存原始正文。提交后生成结构化分析；必须声明你拥有合法分析权限。</p>
+        <form id="fulltext-form">
+          <div class="form-grid">
+            <label>标题<input id="fulltext-title" placeholder="可选"></label>
+            <label>关联 ISBN<input id="fulltext-isbn" placeholder="可选"></label>
+            <label>权限依据
+              <select id="fulltext-rights" required>
+                <option value="user-provided">user-provided</option>
+                <option value="public-domain">public-domain</option>
+                <option value="open-license">open-license</option>
+                <option value="licensed">licensed</option>
+              </select>
+            </label>
+          </div>
+          <label>正文<textarea id="fulltext-text" rows="15" placeholder="粘贴你有权分析的文本。CLI 还支持 TXT / Markdown / EPUB / PDF。"></textarea></label>
+          <button class="primary" type="submit">生成完整分析</button>
+          <span id="fulltext-status" class="status"></span>
+        </form>
+      </div>
+    </section>
+
+    <section class="view" id="view-about">
+      <div class="panel prose">
+        <h2>这个项目在做什么</h2>
+        <p>Cyber Library 把 <strong>Work（作品）</strong>、<strong>Edition（版本）</strong>、ISBN 与知识分类分开建模。ISBN 空间只表示出版标识符，不拿 ISBN 前缀冒充内容分类。</p>
+        <p>公开目录层可以来自 Open Library 月度 dump；实时 API 仅用于低频的人触发查询。全文层只分析公版、开放许可、已授权或用户主动提供的内容。</p>
+        <p>ISBN 宇宙使用 Cyber Library 独立实现的 Hilbert 坐标系统，不包含 <code>phiresky/isbn-visualization</code> 源码。</p>
+      </div>
+    </section>
+
+    <footer>
+      <span>Cyber Library</span>
+      <span class="mono">Work → Edition → Evidence → Intelligence → Graph</span>
+    </footer>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

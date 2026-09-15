@@ -1,52 +1,85 @@
 # Architecture
 
-The visualization is a client of the catalog, not the catalog itself.
+Cyber Library keeps five concerns separate:
 
 ```text
-External metadata / dumps
-          │
-          ▼
-      Ingestion
-          │
-          ▼
-     Normalization
-          │
-          ▼
-   Entity Resolution
-    Work / Edition
-          │
-   ┌──────┼─────────┐
-   ▼      ▼         ▼
-Catalog  Search  Intelligence
-   │      │         │
-   └──────┼─────────┘
-          ▼
-         API
-          │
-    ┌─────┴──────────┐
-    ▼                ▼
-ISBN Universe   Knowledge Space
+Sources
+  │
+  ├─ Open Library dumps ───────────┐
+  ├─ low-volume live APIs          │
+  └─ authorized local content      │
+                                   ▼
+                         Normalized Catalog
+                       Work / Edition / IDs
+                                   │
+           ┌───────────────────────┼──────────────────────┐
+           ▼                       ▼                      ▼
+        Search                  Evidence              ISBN Space
+      FTS / SQL            descriptions / TOC       Hilbert coords
+           │                       │                      │
+           └──────────────┬────────┴─────────┬────────────┘
+                          ▼                  ▼
+                    Intelligence       Knowledge Graph
+                          │                  │
+                          └────────┬─────────┘
+                                   ▼
+                              HTTP API
+                                   ▼
+                             Web Explorer
 ```
 
-## Catalog
+## Catalog layer
 
-Owns bibliographic truth: works, editions, authors, identifiers, publishers, publication metadata and provenance.
+SQLite is the default zero-dependency backend. It stores:
 
-## Search
+- works;
+- editions;
+- authors;
+- identifiers;
+- generated analysis records;
+- content metadata/hashes.
 
-Will own lexical indexes, facets, semantic vectors and ranking signals. ISBN prefixes are not subject classification.
+Raw Open Library JSON is retained inside catalog rows so later versions can
+reconstruct fields without re-downloading the dump.
 
-## Intelligence
+## Search layer
 
-Owns generated interpretation. Generated analysis never silently overwrites catalog facts.
+FTS5 is used when the Python SQLite build includes it. Otherwise, Cyber Library
+falls back to SQL `LIKE` queries. The fallback is slower but keeps the project
+portable.
 
-## Visualization
+## Evidence layer
 
-Two orthogonal views are planned:
+Evidence is separate from bibliographic truth. Examples:
 
-- **ISBN Space**: publication / identifier topology.
-- **Knowledge Space**: semantic subject / concept topology.
+- description;
+- first sentence;
+- notes;
+- excerpts;
+- table of contents;
+- user-authorized full text.
 
-## Online vs bulk data
+Analysis may only claim what the available evidence can support.
 
-Low-volume interactive lookups may use source APIs. Large imports use source-provided dumps. A public deployment must not turn a third-party public API into its high-traffic database backend.
+## Intelligence layer
+
+The deterministic engine works without external AI:
+
+- extractive summaries;
+- keyword/theme extraction;
+- structure detection;
+- chapter/section summaries;
+- mind-map construction.
+
+An optional OpenAI-compatible chat-completions endpoint can improve prose and
+synthesis. LLM output is constrained to evidence already collected by the
+pipeline.
+
+## Visualization layer
+
+Cyber Library does not include `isbn-visualization` source code. It independently
+maps the ISBN namespace onto a Hilbert plane and exposes viewport queries through
+`/api/universe`.
+
+At large production scale, the next step is precomputed spatial tiles rather than
+returning individual points directly.

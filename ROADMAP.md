@@ -1,67 +1,53 @@
 # Roadmap
 
-Cyber Library is developed in vertical slices: each milestone should remain runnable and testable.
+## v1.0 — End-to-end local Cyber Library
 
-## v0.1 — Catalog foundation
+- [x] Work / Edition / Identifier model
+- [x] Open Library low-volume resolver
+- [x] Open Library monthly dump importer
+- [x] SQLite catalog
+- [x] FTS / fallback search
+- [x] subject taxonomy
+- [x] provenance + evidence model
+- [x] catalog/source/full-text intelligence
+- [x] optional OpenAI-compatible LLM
+- [x] TXT / Markdown / EPUB ingestion
+- [x] optional PDF extraction
+- [x] mind map
+- [x] knowledge graph
+- [x] clean-room ISBN Hilbert space
+- [x] web explorer
+- [x] REST API
+- [x] Docker
+- [x] Python 3.11–3.13 CI
 
-- [x] Work / Edition / Identifier separation
-- [x] ISBN-10 and ISBN-13 validation / normalization
-- [x] low-volume Open Library resolver
-- [x] SQLite response cache
-- [x] evidence-bounded L1 catalog analysis
-- [x] local JSON API
-- [x] minimal web explorer
-- [x] CI on Python 3.11–3.13
-- [x] JSON Schemas and sample record
-- [x] Open Library dump importer foundation
-- [x] local catalog lookup by ISBN
+## v1.1 — Scale
 
-## v0.2 — Catalog quality
+- [ ] dedicated bulk importer benchmarks for tens of millions of editions
+- [ ] background/offline index builder with resumable checkpoints
+- [ ] precomputed spatial tiles and clustering for very large ISBN maps
+- [ ] PostgreSQL/PostGIS backend option
+- [ ] OpenSearch backend option
+- [ ] vector embedding backend option
+- [ ] incremental Open Library refresh pipeline
 
-- [ ] multi-source entity reconciliation
-- [ ] author identity reconciliation
-- [ ] redirects / merged records
-- [ ] publisher normalization
-- [ ] language normalization
-- [ ] field-level provenance
-- [ ] cover rights / provenance metadata
-- [ ] incremental dump refresh pipeline
+## v1.2 — More identifiers / sources
 
-## v0.3 — Search
+- [ ] Wikidata entity reconciliation
+- [ ] DOI / Crossref adapter for book-like scholarly works
+- [ ] library authority records
+- [ ] configurable source plug-in contract
+- [ ] multilingual subject normalization
 
-- [ ] lexical search over titles / authors / subjects
-- [ ] filters for language / year / publisher / subject
-- [ ] semantic embeddings
-- [ ] hybrid retrieval and ranking
-- [ ] related-work recommendations
+## v2 — Global knowledge navigation
 
-## v0.4 — Book Intelligence
+- [ ] cross-work concept graph
+- [ ] author timeline
+- [ ] publisher map
+- [ ] citation / influence relationships when reliable sources exist
+- [ ] precomputed public static ISBN map tiles
+- [ ] distributed analysis cache with reproducible source manifests
 
-- [ ] model-provider abstraction
-- [ ] source-backed L2 analysis
-- [ ] structured table-of-contents ingestion
-- [ ] mind-map generation from evidence
-- [ ] concept extraction
-- [ ] analysis cache + versioning
-- [ ] citation / provenance UI
-
-## v0.5 — ISBN Universe
-
-- [ ] define renderer boundary with `phiresky/isbn-visualization`
-- [ ] map normalized editions to ISBN coordinates
-- [ ] dataset tile generation
-- [ ] highlight search result sets
-- [ ] color by year / language / publisher / subject
-- [ ] ISBN → Edition → Work navigation
-
-## v0.6 — Knowledge Space
-
-- [ ] subject hierarchy
-- [ ] concept graph
-- [ ] author graph
-- [ ] timeline
-- [ ] cross-space navigation between semantic graph and ISBN map
-
-## v1.0 — Public explorer
-
-A production deployment needs its own database/search/object-storage infrastructure, observability, backups, source-rights review and abuse controls. The repository intentionally does not claim that v0.x is a complete mirror of every book ever published.
+The roadmap intentionally does not claim that any single catalog can contain every
+book ever created. Coverage should grow by source and identifier, not by pretending
+ISBN is universal.

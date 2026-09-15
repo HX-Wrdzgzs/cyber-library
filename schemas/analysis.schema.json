@@ -1,21 +1,39 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/HX-Wrdzgzs/cyber-library/main/schemas/analysis.schema.json",
+  "$id": "https://cyber-library.dev/schema/analysis.json",
   "title": "Cyber Library Analysis",
   "type": "object",
-  "required": ["level", "confidence", "sources", "warnings"],
+  "required": [
+    "level",
+    "tags",
+    "categories",
+    "themes",
+    "key_points",
+    "table_of_contents",
+    "outline",
+    "chapter_summaries",
+    "confidence",
+    "sources",
+    "warnings"
+  ],
   "properties": {
     "level": {"enum": ["L0", "L1", "L2", "L3"]},
     "brief": {"type": ["string", "null"]},
     "summary": {"type": ["string", "null"]},
     "detailed": {"type": ["string", "null"]},
     "tags": {"type": "array", "items": {"type": "string"}},
+    "categories": {"type": "array", "items": {"type": "string"}},
+    "themes": {"type": "array", "items": {"type": "string"}},
+    "key_points": {"type": "array", "items": {"type": "string"}},
     "table_of_contents": {"type": "array", "items": {"type": "string"}},
     "outline": {"type": "array", "items": {"type": "string"}},
+    "chapter_summaries": {"type": "array", "items": {"type": "object", "required": ["title", "summary"], "properties": {"title": {"type": "string"}, "summary": {"type": "string"}}, "additionalProperties": false}},
     "mindmap": {"type": ["object", "null"]},
     "confidence": {"type": "number", "minimum": 0, "maximum": 1},
     "sources": {"type": "array", "items": {"type": "string"}},
-    "warnings": {"type": "array", "items": {"type": "string"}}
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "generated_at": {"type": ["string", "null"]},
+    "model": {"type": ["string", "null"]}
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }

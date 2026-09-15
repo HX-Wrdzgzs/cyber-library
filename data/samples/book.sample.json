@@ -1,31 +1,111 @@
 {
   "work": {
-    "id": "work:sample-001",
+    "id": "local:work:sample",
     "title": "The Atlas of Quiet Machines",
-    "authors": ["Example Author"],
-    "subjects": ["Technology", "Society"],
-    "source_refs": ["source:demo"]
+    "authors": [
+      "Example Author"
+    ],
+    "subjects": [
+      "Technology",
+      "Society",
+      "Automation"
+    ],
+    "description": "A demonstration record used to show the Cyber Library data model.",
+    "first_sentence": null,
+    "categories": [
+      "Engineering",
+      "Social Sciences"
+    ],
+    "source_refs": [
+      "sample:work"
+    ]
   },
   "edition": {
-    "id": "edition:sample-001-en",
-    "work_id": "work:sample-001",
+    "id": "local:edition:sample",
+    "work_id": "local:work:sample",
     "title": "The Atlas of Quiet Machines",
-    "language": "en",
-    "publishers": ["Example Press"],
+    "language": "eng",
+    "publishers": [
+      "Example Press"
+    ],
     "publish_date": "2026",
     "page_count": 320,
-    "identifiers": {"local": ["DEMO-001"]},
+    "identifiers": {
+      "local": [
+        "DEMO-001"
+      ]
+    },
     "cover_url": null,
-    "source_refs": ["source:demo"]
+    "table_of_contents": [
+      "Systems",
+      "Automation",
+      "Society"
+    ],
+    "physical_format": "paperback",
+    "source_refs": [
+      "sample:edition"
+    ]
   },
   "analysis": {
-    "level": "L1",
-    "brief": "Demonstration analysis generated from catalog-style sample metadata only.",
-    "detailed": null,
-    "tags": ["technology", "society"],
-    "outline": [],
-    "confidence": 0.55,
-    "sources": ["source:demo"],
-    "warnings": ["Demo record; no full text or table of contents was used."]
-  }
+    "level": "L2",
+    "brief": "Demonstration analysis.",
+    "summary": "This sample shows source-backed structured output.",
+    "detailed": "It demonstrates how analysis remains separate from bibliographic facts.",
+    "tags": [
+      "Technology",
+      "Automation"
+    ],
+    "categories": [
+      "Engineering"
+    ],
+    "themes": [
+      "Automation"
+    ],
+    "key_points": [
+      "Analysis is stored separately from catalog facts."
+    ],
+    "table_of_contents": [
+      "Systems",
+      "Automation",
+      "Society"
+    ],
+    "outline": [
+      "Systems",
+      "Automation",
+      "Society"
+    ],
+    "chapter_summaries": [],
+    "mindmap": {
+      "name": "The Atlas of Quiet Machines",
+      "relation": "work",
+      "children": []
+    },
+    "confidence": 0.8,
+    "sources": [
+      "sample:work"
+    ],
+    "warnings": [
+      "Synthetic sample data."
+    ],
+    "generated_at": "2026-09-15T00:00:00+00:00",
+    "model": "sample"
+  },
+  "provenance": [
+    {
+      "source": "Synthetic sample",
+      "source_id": "DEMO-001",
+      "url": null,
+      "retrieved_at": null,
+      "license": "CC0"
+    }
+  ],
+  "evidence": [
+    {
+      "kind": "description",
+      "text": "A demonstration record used to show the Cyber Library data model.",
+      "source_ref": "sample:work",
+      "title": null,
+      "url": null
+    }
+  ]
 }

@@ -1,26 +1,52 @@
-# Data Sources
-
-A source being technically accessible does not automatically mean every field or asset may be redistributed without conditions.
+# Data sources
 
 ## Open Library
 
-Primary bootstrap source for Works, Editions, Authors, Subjects and identifiers.
+Cyber Library currently treats Open Library as its primary bibliographic source.
 
-Cyber Library uses two modes:
+Use cases:
 
-- low-volume, human-triggered API lookup with caching;
-- bulk ingestion from monthly data dumps.
+- Works
+- Editions
+- Authors
+- Subjects
+- identifiers
+- descriptions
+- tables of contents
+- covers
 
-Do not use thousands of one-book API calls to build the catalog.
+Official resources:
 
-## Wikidata
+- Developer center: https://openlibrary.org/developers
+- APIs: https://openlibrary.org/developers/api
+- Dumps: https://openlibrary.org/developers/dumps
+- Licensing: https://openlibrary.org/developers/licensing
+- Covers: https://openlibrary.org/dev/docs/api/covers
 
-Candidate source for entity reconciliation, authors, concepts and cross-dataset identifiers.
+### Bulk rule
 
-## Internet Archive
+Do not build a giant catalog by looping over the live APIs.
 
-Candidate metadata and public-domain/open-access content source. Item rights must be handled explicitly.
+Use monthly dumps. Open Library explicitly publishes them for bulk access.
 
-## Other sources
+### Live rule
 
-Additional bibliographic sources can be adapters as long as provenance, usage terms and conflicts are preserved rather than flattened away.
+Live endpoints are used only for low-volume, human-triggered resolution/search.
+Cyber Library sends an identifying User-Agent and supports a contact header.
+
+### Covers
+
+The web UI links to Open Library cover URLs rather than bulk-crawling the Covers
+API. Large cover mirrors should use the bulk resources Open Library documents.
+
+## Future sources
+
+The data model can add:
+
+- Wikidata
+- authority files
+- DOI/Crossref data for book-like scholarly publications
+- publisher feeds
+- national-library catalogs
+
+Each adapter must retain provenance and source-specific rights/terms.

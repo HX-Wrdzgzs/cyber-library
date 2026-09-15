@@ -7,8 +7,12 @@ build/
 *.egg-info/
 .pytest_cache/
 .coverage
+.DS_Store
 .env
 .env.*
 !.env.example
 .cyber-library/
-.DS_Store
+data/*.sqlite3
+data/*.sqlite3-*
+data/*.gz
+data/*.txt

@@ -4,11 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cyber-library"
-version = "0.1.0"
-description = "GitHub-first prototype for an AI-assisted global book knowledge map."
+version = "1.0.0"
+description = "Evidence-aware global book catalog, knowledge graph, analysis engine and ISBN universe."
 readme = "README.md"
 requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+  {name = "Cyber Library contributors"}
+]
+keywords = ["books", "isbn", "open-library", "knowledge-graph", "library"]
 dependencies = []
+
+[project.optional-dependencies]
+pdf = ["pypdf>=5,<7"]
 
 [project.scripts]
 cyber-library = "cyber_library.cli:main"

@@ -1,0 +1,14 @@
+services:
+  cyber-library:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      CYBER_LIBRARY_CONTACT: ${CYBER_LIBRARY_CONTACT:-}
+      CYBER_LIBRARY_LLM_BASE_URL: ${CYBER_LIBRARY_LLM_BASE_URL:-}
+      CYBER_LIBRARY_LLM_MODEL: ${CYBER_LIBRARY_LLM_MODEL:-}
+      CYBER_LIBRARY_LLM_API_KEY: ${CYBER_LIBRARY_LLM_API_KEY:-}
+    volumes:
+      - ./data:/app/data
+      - ./.cyber-library:/app/.cyber-library
+    restart: unless-stopped

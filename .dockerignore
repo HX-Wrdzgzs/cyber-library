@@ -1,0 +1,9 @@
+.git
+.github
+.cyber-library
+__pycache__
+*.pyc
+.venv
+data/*.gz
+data/*.txt
+data/*.sqlite3

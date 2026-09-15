@@ -2,27 +2,22 @@
 
 ## Core rules
 
-1. Bibliographic facts and AI-generated interpretation stay separate.
-2. Work, Edition and Identifier are distinct entities.
-3. Imported data keeps provenance.
-4. AI output states its evidence level.
-5. Unsupported chapter/full-text claims are rejected rather than invented.
-6. Do not add copyrighted full text unless redistribution is clearly permitted.
-7. Review third-party software and data terms before importing them.
+1. Work, Edition and Identifier must remain separate concepts.
+2. Bibliographic facts and generated interpretation must not be mixed.
+3. Every new source adapter must preserve provenance.
+4. Bulk data should use source-provided dumps/feeds, not abusive API crawling.
+5. Full text must have a clear rights basis.
+6. Do not import third-party source code without reviewing license compatibility.
+7. Tests must cover schema or behavior changes.
 
 ## Development
 
 ```bash
-python -m venv .venv
-# activate the environment
 python -m pip install -e .
 python -m unittest discover -s tests -v
+python -m compileall -q src
+node --check web/app.js
 ```
 
-Run the local explorer:
-
-```bash
-cyber-library serve --port 8080 --contact you@example.com
-```
-
-For schema changes, update the schema, sample data, docs and tests in the same commit.
+No pull-request workflow is required by the software itself; repository maintainers
+may choose their own contribution policy.
