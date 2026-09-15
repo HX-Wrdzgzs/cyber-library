@@ -23,9 +23,10 @@
 
 ## v1.1 — Scale
 
+- [x] one-command resumable Open Library dump bootstrap
+- [x] resumable offline ISBN-universe index builder
+- [x] precomputed spatial density tiles and progressive map rendering
 - [ ] dedicated bulk importer benchmarks for tens of millions of editions
-- [ ] background/offline index builder with resumable checkpoints
-- [ ] precomputed spatial tiles and clustering for very large ISBN maps
 - [ ] PostgreSQL/PostGIS backend option
 - [ ] OpenSearch backend option
 - [ ] vector embedding backend option

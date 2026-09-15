@@ -11,6 +11,7 @@ from .identifiers import normalize_isbn
 from .intelligence import analyze_record, full_text_analysis
 from .llm import LLMClient
 from .models import Analysis, BookRecord, Edition, Provenance, Work
+from .scale import MAX_TILE_LEVEL, query_universe_tiles
 from .sources.openlibrary import NotFound, OpenLibraryClient
 from .taxonomy import categories as all_categories
 from .universe import isbn_space_point, space_metadata
@@ -60,8 +61,12 @@ class CatalogService:
         if self.catalog and record.work: related=self.catalog.related(record.work.id,record.work.subjects,16)
         return build_knowledge_graph(record,related)
 
-    def universe(self, limit:int=2500, min_x:float=0.0, max_x:float=1.0, min_y:float=0.0, max_y:float=1.0, category:str|None=None, query:str|None=None) -> dict:
+    def universe(self, limit:int=2500, min_x:float=0.0, max_x:float=1.0, min_y:float=0.0, max_y:float=1.0, category:str|None=None, query:str|None=None, zoom_level:int|None=None) -> dict:
         if self.catalog:
+            if not category and not query and zoom_level is not None and zoom_level <= MAX_TILE_LEVEL:
+                tiles=query_universe_tiles(self.catalog,level=zoom_level,min_x=min_x,max_x=max_x,min_y=min_y,max_y=max_y,limit=limit)
+                if tiles:
+                    return {"space":space_metadata(),"mode":"tiles","zoom_level":zoom_level,"tiles":tiles,"points":[]}
             points=self.catalog.universe_points(limit=limit,min_x=min_x,max_x=max_x,min_y=min_y,max_y=max_y,category=category,query=query)
         elif query and self.live_fallback:
             points=[]
@@ -72,7 +77,7 @@ class CatalogService:
                 except Exception: continue
                 points.append({"edition_id":item.get("edition_id"),"work_id":item.get("work_id"),"title":item.get("title"),"isbn":point.isbn13,"x":point.x,"y":point.y,"publish_date":item.get("publish_date"),"categories":item.get("categories") or []})
         else: points=[]
-        return {"space":space_metadata(),"points":points}
+        return {"space":space_metadata(),"mode":"points","zoom_level":zoom_level,"tiles":[],"points":points}
 
     def analyze_text(self, text:str, rights:str, title:str|None=None, isbn:str|None=None, headings:list[str]|None=None, source_ref:str|None=None, source_path:str|None=None) -> BookRecord:
         if rights not in RIGHTS_VALUES: raise ValueError("invalid rights value")

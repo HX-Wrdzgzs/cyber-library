@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0 — 2026-09-16
+
+- Added resumable Open Library bootstrap downloads and one-command catalog creation.
+- Added offline scale maintenance CLI: `cyber-library-scale`.
+- Added resumable, checkpointed ISBN-universe density tile generation.
+- Added progressive Universe API output: density tiles at distant zooms and edition points at close/filtered zooms.
+- Updated the web ISBN Universe to drill from aggregate cells into individual books.
+- Integrated universe tile generation into the standard Open Library bootstrap pipeline.
+
 ## 1.0.0 — 2026-09-15
 
 - Added evidence-aware L0/L1/L2/L3 analysis.

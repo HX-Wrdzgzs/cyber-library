@@ -8,7 +8,9 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
+from .database import CatalogDB
 from .dump import import_openlibrary_dumps
+from .scale import build_universe_tiles
 
 OPENLIBRARY_DUMP_URLS: dict[str, str] = {
     "authors": "https://openlibrary.org/data/ol_dump_authors_latest.txt.gz",
@@ -82,7 +84,7 @@ def download_url(
 
     start = partial.stat().st_size if partial.exists() else 0
     headers = {
-        "User-Agent": "CyberLibrary/1.0 (+https://github.com/HX-Wrdzgzs/cyber-library)",
+        "User-Agent": "CyberLibrary/1.1 (+https://github.com/HX-Wrdzgzs/cyber-library)",
         "Accept-Encoding": "identity",
     }
     if start:
@@ -196,11 +198,23 @@ def bootstrap_openlibrary(
     paths = [item["path"] for item in downloads]
     _emit(progress, event="import-start", paths=paths, db=str(db_path))
     imported = import_openlibrary_dumps(paths, db_path, limit_each=limit_each, reindex=reindex)
+
+    tiles = None
+    if reindex:
+        db = CatalogDB(db_path, index_on_write=False)
+        try:
+            _emit(progress, event="universe-tiles-start", db=str(db_path))
+            tiles = build_universe_tiles(db)
+            _emit(progress, event="universe-tiles-complete", result=tiles)
+        finally:
+            db.close()
+
     result = {
         "database": str(db_path),
         "download_directory": str(download_dir),
         "downloads": downloads,
         "import": imported,
+        "universe_tiles": tiles,
     }
     manifest = Path(download_dir) / "bootstrap-manifest.json"
     manifest.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")

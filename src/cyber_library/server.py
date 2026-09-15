@@ -26,7 +26,7 @@ def _float(value: str | None, default: float) -> float:
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "CyberLibraryHTTP/1.0"
+    server_version = "CyberLibraryHTTP/1.1"
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
@@ -78,7 +78,19 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "upstream_error", "detail": str(exc)}, HTTPStatus.BAD_GATEWAY)
         if parsed.path == "/api/universe":
             try:
-                payload = self.server.catalog.universe(limit=max(1, min(_int((query.get("limit") or ["2500"])[0], 2500) or 2500, 5000)), min_x=max(0.0, min(1.0, _float((query.get("min_x") or [None])[0], 0.0))), max_x=max(0.0, min(1.0, _float((query.get("max_x") or [None])[0], 1.0))), min_y=max(0.0, min(1.0, _float((query.get("min_y") or [None])[0], 0.0))), max_y=max(0.0, min(1.0, _float((query.get("max_y") or [None])[0], 1.0))), category=(query.get("category") or [None])[0] or None, query=(query.get("q") or [None])[0] or None)
+                zoom_level = _int((query.get("z") or [None])[0])
+                if zoom_level is not None:
+                    zoom_level = max(0, min(16, zoom_level))
+                payload = self.server.catalog.universe(
+                    limit=max(1, min(_int((query.get("limit") or ["2500"])[0], 2500) or 2500, 10000)),
+                    min_x=max(0.0, min(1.0, _float((query.get("min_x") or [None])[0], 0.0))),
+                    max_x=max(0.0, min(1.0, _float((query.get("max_x") or [None])[0], 1.0))),
+                    min_y=max(0.0, min(1.0, _float((query.get("min_y") or [None])[0], 0.0))),
+                    max_y=max(0.0, min(1.0, _float((query.get("max_y") or [None])[0], 1.0))),
+                    category=(query.get("category") or [None])[0] or None,
+                    query=(query.get("q") or [None])[0] or None,
+                    zoom_level=zoom_level,
+                )
             except (ValueError, SourceError) as exc:
                 return self._json({"error": "universe_failed", "detail": str(exc)}, HTTPStatus.BAD_REQUEST)
             return self._json(payload)
