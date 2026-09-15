@@ -4,7 +4,7 @@
 
 Cyber Library is an open, machine-readable and AI-assisted map of books and published knowledge. It separates bibliographic facts from generated interpretation and separates physical publication identifiers from semantic knowledge navigation.
 
-## What v2 includes
+## What v2.1 includes
 
 - Work / Edition / Author / Identifier separation
 - ISBN-10 / ISBN-13 validation and normalization
@@ -13,6 +13,8 @@ Cyber Library is an open, machine-readable and AI-assisted map of books and publ
 - SQLite catalog with FTS/fallback search
 - optional OpenAI-compatible embeddings with lexical/semantic RRF ranking
 - Wikidata ISBN reconciliation and Crossref ISBN → DOI linking
+- Wikidata author authority candidates with ISNI / VIAF / LCNAF / GND identifiers
+- Crossref deposited DOI references and relation evidence
 - conservative multilingual subject normalization while preserving upstream raw records
 - L0/L1/L2/L3 evidence-aware book intelligence
 - lawful TXT / Markdown / EPUB and optional PDF full-text analysis
@@ -83,8 +85,6 @@ The checkpoint advances only after the full selected window is observed and ever
 
 ## Search and semantic retrieval
 
-Lexical search:
-
 ```bash
 cyber-library search "machine learning" \
   --db .cyber-library/catalog.sqlite3 \
@@ -117,7 +117,7 @@ cyber-library-knowledge publisher "Publisher Name" --db .cyber-library/catalog.s
 
 The browser includes a **知识空间** tab. See [`docs/knowledge-space.md`](docs/knowledge-space.md).
 
-## External identifiers
+## External identifiers, authority and citation evidence
 
 ```bash
 cyber-library-source list
@@ -127,7 +127,19 @@ cyber-library-source links 9780306406157 \
   --db .cyber-library/catalog.sqlite3
 ```
 
-Successful Wikidata / Crossref matches are persisted independently. One failing external source does not discard successful results from other sources. See [`docs/sources.md`](docs/sources.md).
+Find same-label author authority candidates without auto-merging them:
+
+```bash
+cyber-library-source authority "Author Name" --source wikidata
+```
+
+Inspect Crossref-deposited DOI references/relations without recursively crawling targets:
+
+```bash
+cyber-library-source citations 10.xxxx/example --source crossref
+```
+
+Successful ISBN matches are persisted independently. Authority candidates stay candidates (`auto_merge=false`). Citation relationships remain source-labelled evidence. See [`docs/sources.md`](docs/sources.md).
 
 ## ISBN Universe
 
@@ -258,4 +270,4 @@ Original Cyber Library source in this repository is MIT licensed. Third-party me
 
 ## Project status
 
-The local/portable v2 core is functional. Optional PostgreSQL/PostGIS, OpenSearch, authority-record and large-scale ANN adapters are deployment/source extensions rather than prerequisites for the core catalog and knowledge-navigation model. See [`ROADMAP.md`](ROADMAP.md).
+The local/portable v2.1 core is functional. PostgreSQL/PostGIS, OpenSearch, object-storage publishing, national-library connectors and large-scale ANN backends are optional deployment/source adapters, not prerequisites for the core catalog and knowledge-navigation model. See [`ROADMAP.md`](ROADMAP.md).
