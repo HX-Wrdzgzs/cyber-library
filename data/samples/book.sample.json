@@ -1,0 +1,31 @@
+{
+  "work": {
+    "id": "work:sample-001",
+    "title": "The Atlas of Quiet Machines",
+    "authors": ["Example Author"],
+    "subjects": ["Technology", "Society"],
+    "source_refs": ["source:demo"]
+  },
+  "edition": {
+    "id": "edition:sample-001-en",
+    "work_id": "work:sample-001",
+    "title": "The Atlas of Quiet Machines",
+    "language": "en",
+    "publishers": ["Example Press"],
+    "publish_date": "2026",
+    "page_count": 320,
+    "identifiers": {"local": ["DEMO-001"]},
+    "cover_url": null,
+    "source_refs": ["source:demo"]
+  },
+  "analysis": {
+    "level": "L1",
+    "brief": "Demonstration analysis generated from catalog-style sample metadata only.",
+    "detailed": null,
+    "tags": ["technology", "society"],
+    "outline": [],
+    "confidence": 0.55,
+    "sources": ["source:demo"],
+    "warnings": ["Demo record; no full text or table of contents was used."]
+  }
+}

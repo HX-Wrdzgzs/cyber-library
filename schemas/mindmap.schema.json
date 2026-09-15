@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/HX-Wrdzgzs/cyber-library/main/schemas/mindmap.schema.json",
+  "title": "Cyber Library Mind Map",
+  "$defs": {
+    "node": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "relation": {"type": ["string", "null"]},
+        "children": {"type": "array", "items": {"$ref": "#/$defs/node"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "$ref": "#/$defs/node"
+}

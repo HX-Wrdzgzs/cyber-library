@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/HX-Wrdzgzs/cyber-library/main/schemas/edition.schema.json",
+  "title": "Cyber Library Edition",
+  "type": "object",
+  "required": ["id", "title", "identifiers", "source_refs"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "work_id": {"type": ["string", "null"]},
+    "title": {"type": "string"},
+    "language": {"type": ["string", "null"]},
+    "publishers": {"type": "array", "items": {"type": "string"}},
+    "publish_date": {"type": ["string", "null"]},
+    "page_count": {"type": ["integer", "null"], "minimum": 1},
+    "identifiers": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
+    "cover_url": {"type": ["string", "null"]},
+    "source_refs": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}
