@@ -27,23 +27,30 @@
 ## v2.0 — Knowledge navigation and portable deployment
 
 - [x] dedicated synthetic bulk-import benchmark using the real importer
-- [x] multilingual subject normalization at ingestion boundaries
+- [x] multilingual subject normalization at ingestion and query boundaries
 - [x] cross-work concept graph
 - [x] author timeline
 - [x] publisher/category map
 - [x] browser Knowledge Space view and REST endpoints
 - [x] precomputed public static ISBN Universe JSON export
-- [x] portable analysis cache bundle with reproducible source manifest and SHA-256 validation
+- [x] portable analysis cache bundle with source manifest and SHA-256 validation
 
-## Optional scale/source adapters
+## v2.1 — Authority and relationship evidence
 
-These are deployment extensions, not blockers for the local/portable core:
+- [x] Wikidata author authority candidates with ISNI / VIAF / LCNAF / GND identifiers
+- [x] ambiguity-safe authority policy (`auto_merge=false`)
+- [x] Crossref deposited DOI references
+- [x] Crossref relation metadata and `is-referenced-by-count` influence signal
+- [x] source CLI commands for authority and citation evidence
+
+## Optional deployment adapters
+
+These are deployment extensions rather than blockers for the completed local/portable core:
 
 - [ ] PostgreSQL/PostGIS backend adapter
 - [ ] OpenSearch backend adapter
-- [ ] library authority-record reconciliation
-- [ ] citation / influence relationships where reliable deposited metadata exists
 - [ ] external object-storage publisher for static Universe artifacts
 - [ ] ANN/vector-database adapter for very large embedding indexes
+- [ ] additional national-library / authority-file adapters
 
 Cyber Library intentionally does not claim that any single catalog contains every book ever created. Coverage grows by legitimate sources and identifiers while provenance remains explicit.

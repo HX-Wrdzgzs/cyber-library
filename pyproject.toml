@@ -4,14 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cyber-library"
-version = "2.0.0"
+version = "2.1.0"
 description = "Evidence-aware global book catalog, knowledge graph, analysis engine and ISBN universe."
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
-authors = [
-  {name = "Cyber Library contributors"}
-]
+authors = [{name = "Cyber Library contributors"}]
 keywords = ["books", "isbn", "open-library", "knowledge-graph", "library"]
 dependencies = []
 
