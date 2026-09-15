@@ -7,9 +7,12 @@
   "properties": {
     "level": {"enum": ["L0", "L1", "L2", "L3"]},
     "brief": {"type": ["string", "null"]},
+    "summary": {"type": ["string", "null"]},
     "detailed": {"type": ["string", "null"]},
     "tags": {"type": "array", "items": {"type": "string"}},
+    "table_of_contents": {"type": "array", "items": {"type": "string"}},
     "outline": {"type": "array", "items": {"type": "string"}},
+    "mindmap": {"type": ["object", "null"]},
     "confidence": {"type": "number", "minimum": 0, "maximum": 1},
     "sources": {"type": "array", "items": {"type": "string"}},
     "warnings": {"type": "array", "items": {"type": "string"}}

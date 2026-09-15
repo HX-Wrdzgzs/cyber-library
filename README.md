@@ -2,81 +2,30 @@
 
 > Explore humanity's published knowledge.
 
-Cyber Library is an open project for building a machine-readable, AI-assisted map of books and published knowledge.
+[![CI](https://github.com/HX-Wrdzgzs/cyber-library/actions/workflows/ci.yml/badge.svg)](https://github.com/HX-Wrdzgzs/cyber-library/actions/workflows/ci.yml)
 
-The project starts as a GitHub-first specification and prototype. A web interface can be added later without changing the core data model.
+Cyber Library is a GitHub-first, machine-readable and AI-assisted book knowledge project. The long-term goal is not a giant folder of PDFs: it is a navigable catalog and knowledge layer connecting **Works, Editions, Authors, identifiers, subjects, analysis and visualization**.
 
-## Goals
+The first runnable version already supports ISBN normalization, low-volume Open Library resolution, bulk Open Library dump ingestion into SQLite, local lookup, evidence-bounded catalog analysis, a JSON API and a minimal browser explorer.
 
-Cyber Library aims to combine:
+## Why this model
 
-- global bibliographic metadata;
-- Work / Edition / Author separation;
-- ISBN-space visualization;
-- subject classification and tags;
-- AI-assisted brief and detailed interpretation;
-- tables of contents and structural outlines when legitimate source material is available;
-- mind maps and knowledge graphs;
-- semantic search;
-- transparent provenance and analysis confidence.
-
-The project does **not** assume that `book == ISBN`. ISBN is one identifier for an edition. A single intellectual work can have many editions, languages and identifiers.
-
-## Core idea
+`book == ISBN` is wrong. One intellectual Work may have many editions, translations, publishers and ISBNs.
 
 ```text
-                      CYBER LIBRARY
-
-                    Published Knowledge
-                           │
-          ┌────────────────┼────────────────┐
-          │                │                │
-       Catalog        Intelligence       Graph
-          │                │                │
-   Work / Edition      Brief / Deep      Concepts
-   Author / IDs         Outline / TOC      Tags
-   Publisher / Date     Mind Map          Relations
-          │                │                │
-          └────────────────┼────────────────┘
-                           │
-                       Exploration
-                           │
-             ┌─────────────┴─────────────┐
-             │                           │
-        ISBN Universe              Knowledge Space
+Author ─────┐
+            ▼
+           Work
+          /  |  \
+         ▼   ▼   ▼
+    Edition Edition Edition
+       │       │       │
+      ISBN    ISBN    other identifiers
 ```
 
-## Project status
+Cyber Library also keeps bibliographic facts separate from generated interpretation.
 
-**Stage: specification + prototype**
-
-Current priorities:
-
-1. stabilize the canonical data model;
-2. define provenance and AI-analysis levels;
-3. implement metadata ingestion;
-4. resolve ISBN/edition/work relationships;
-5. build search and graph indexes;
-6. integrate an ISBN visualization layer;
-7. build the web explorer.
-
-See [ROADMAP.md](ROADMAP.md).
-
-## Canonical entities
-
-### Work
-
-The abstract intellectual or creative work.
-
-### Edition
-
-A concrete published manifestation of a Work.
-
-### Analysis
-
-AI-generated material is stored separately from bibliographic truth.
-
-## AI analysis levels
+## Book Intelligence
 
 ```text
 L0  Metadata only
@@ -85,29 +34,125 @@ L2  Source-backed analysis
 L3  Full-text analysis
 ```
 
-A system must never claim chapter-level or full-book understanding when it only has metadata.
+L1 may generate a short overview, tags and a metadata-derived mind map. It must not invent chapter contents. Detailed interpretation, chapter summaries, table of contents and structural outlines stay empty until the evidence level supports them.
 
-## ISBN Visualization
+## Quick start
 
-The visual concept is inspired by / intended to interoperate with:
+Requires Python 3.11+.
 
-- `phiresky/isbn-visualization`
-- https://github.com/phiresky/isbn-visualization
+```bash
+python -m venv .venv
+# activate the environment
+python -m pip install -e .
+python -m unittest discover -s tests -v
+```
 
-Cyber Library does **not** currently copy that repository's source code. The upstream repository contains an AGPLv3 license file, so any future code-level integration must be reviewed for license compatibility before merging.
+Normalize an ISBN:
 
-## Non-goals for the first version
+```bash
+cyber-library isbn 0-306-40615-2
+# 9780306406157
+```
 
-- mirroring every book's full text;
-- bypassing publisher or library access controls;
-- pretending all books have ISBNs;
-- pre-generating AI summaries for every known edition;
-- storing unverifiable AI output as bibliographic fact.
+Resolve one book using the low-volume Open Library API:
+
+```bash
+cyber-library resolve 9780140328721 --analyze --contact you@example.com
+```
+
+Run the local explorer:
+
+```bash
+cyber-library serve --port 8080 --contact you@example.com
+```
+
+Open `http://127.0.0.1:8080`.
+
+## Bulk catalog mode
+
+Do **not** build a large catalog by firing millions of single-book API calls. Open Library explicitly provides monthly data dumps for bulk access.
+
+Import a Work / Edition / Author dump file (plain TSV or `.gz`):
+
+```bash
+cyber-library import-dump /path/to/ol_dump_editions_latest.txt.gz --db data/catalog.sqlite3
+cyber-library import-dump /path/to/ol_dump_works_latest.txt.gz --db data/catalog.sqlite3
+cyber-library import-dump /path/to/ol_dump_authors_latest.txt.gz --db data/catalog.sqlite3
+```
+
+Inspect counts:
+
+```bash
+cyber-library stats --db data/catalog.sqlite3
+```
+
+Resolve from local data only:
+
+```bash
+cyber-library resolve 9780140328721 --db data/catalog.sqlite3 --no-live --analyze
+```
+
+Or let the local catalog take priority and use the live source only for misses:
+
+```bash
+cyber-library serve --db data/catalog.sqlite3 --contact you@example.com
+```
+
+Open Library's current API guidance describes its web API as low-volume, human-facing access, asks applications to cache results and identify themselves, and directs bulk projects to monthly dumps. Current documented rate limits are 1 request/second by default and 3 requests/second for identified requests. See: https://openlibrary.org/developers/api and https://openlibrary.org/developers/dumps
+
+## Current repository
+
+```text
+cyber-library/
+├─ src/cyber_library/
+│  ├─ identifiers.py       # ISBN validation / normalization
+│  ├─ models.py            # Work / Edition / Analysis
+│  ├─ sources/openlibrary.py
+│  ├─ database.py          # local bulk catalog
+│  ├─ dump.py              # Open Library dump ingestion
+│  ├─ intelligence.py      # evidence-bounded L1 analysis
+│  ├─ service.py           # local-first resolver
+│  ├─ server.py            # JSON API + static UI
+│  └─ cli.py
+├─ web/                    # minimal explorer
+├─ schemas/                # JSON schemas
+├─ docs/                   # architecture / data / licensing
+├─ references/             # upstream project references
+└─ tests/
+```
+
+## ISBN Universe
+
+The original inspiration is [`phiresky/isbn-visualization`](https://github.com/phiresky/isbn-visualization). Cyber Library currently references it but does not copy its source code.
+
+The intended future bridge is:
+
+```text
+ISBN coordinate
+      ↓
+Edition resolver
+      ↓
+Work
+      ↓
+subjects / tags / analysis / related concepts
+```
+
+ISBN-space coordinates and semantic categories remain separate. That lets the future renderer highlight "all books about X" across the ISBN universe without pretending ISBN ranges are subject classes.
+
+The upstream repository contains an AGPLv3 license file. This repository's original code is MIT-licensed; see [NOTICE.md](NOTICE.md) and [docs/licensing.md](docs/licensing.md) before any code-level integration.
+
+## What this project does not claim
+
+- It does not currently contain every book in existence.
+- ISBN does not cover every historical or modern text.
+- It does not mirror copyrighted full text by default.
+- Metadata availability does not imply full-text redistribution rights.
+- AI output is not stored as bibliographic fact.
+
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md). The next major layers are entity reconciliation, search, source-backed L2 analysis, knowledge graphs, and the ISBN Universe renderer.
 
 ## License
 
-A final project license has intentionally **not** been selected in this bootstrap commit.
-
-Reason: the project may later interoperate with or derive code from AGPL-licensed `isbn-visualization`. The license boundary should be decided before third-party source code is imported.
-
-Until a license is added, normal copyright rules apply to this repository's original material.
+Cyber Library's original code: [MIT](LICENSE).
