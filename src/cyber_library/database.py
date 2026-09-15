@@ -124,7 +124,7 @@ class CatalogDB:
             description=excluded.description,categories=excluded.categories,raw_json=excluded.raw_json""",
             (key,title,json.dumps(subjects,ensure_ascii=False),json.dumps(authors,ensure_ascii=False),description,json.dumps(cats,ensure_ascii=False),json.dumps(raw,ensure_ascii=False)))
 
-    def upsert_edition(self, key: str, raw* *: dict) -> None:
+    def upsert_edition(self, key: str, raw: dict) -> None:
         works=raw.get("works") or []; work_id=works[0].get("key") if works and isinstance(works[0],dict) else None
         langs=raw.get("languages") or []; language=(langs[0].get("key","").rsplit("/",1)[-1] if langs and isinstance(langs[0],dict) else None) or None
         ids: dict[str,list[str]]={}
