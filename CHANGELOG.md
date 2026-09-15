@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 — 2026-09-16
+
+- Added a reusable external `SourceAdapter` protocol and source registry.
+- Added built-in Wikidata ISBN entity reconciliation using ISBN-13 `P212` and ISBN-10 `P957`.
+- Added persistent `entity_links` storage so external IDs remain separate from canonical bibliographic records.
+- Added `cyber-library-source` CLI for source discovery, health, reconciliation and local link inspection.
+- Added source adapter and persistence tests without making CI depend on public network availability.
+
 ## 1.1.1 — 2026-09-16
 
 - Added optional OpenAI-compatible embedding client.

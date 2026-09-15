@@ -35,10 +35,10 @@
 
 ## v1.2 — More identifiers / sources
 
-- [ ] Wikidata entity reconciliation
+- [x] configurable source adapter / registry contract
+- [x] Wikidata ISBN entity reconciliation and persisted external links
 - [ ] DOI / Crossref adapter for book-like scholarly works
 - [ ] library authority records
-- [ ] configurable source plug-in contract
 - [ ] multilingual subject normalization
 
 ## v2 — Global knowledge navigation
