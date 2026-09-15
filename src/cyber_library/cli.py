@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
+from .bootstrap import DownloadError, OPENLIBRARY_DUMP_URLS, bootstrap_openlibrary
 from .content import ContentError, RIGHTS_VALUES, extract_document
 from .database import CatalogDB
 from .dump import import_openlibrary_dumps
@@ -17,6 +19,29 @@ from .universe import isbn_space_point, space_metadata
 
 def _dump(payload) -> None:
     print(json.dumps(payload, ensure_ascii=False, indent=2))
+
+
+def _bootstrap_progress(event: dict) -> None:
+    kind = event.get("event")
+    if kind == "download-start":
+        resumed = " (resume)" if event.get("resumed") else ""
+        print(f"[download]{resumed} {event.get('path')}", file=sys.stderr)
+    elif kind == "download-progress":
+        current = int(event.get("bytes") or 0)
+        total = event.get("total")
+        if total:
+            percent = current * 100 / int(total)
+            print(f"[download] {current / 1024**3:.2f} / {int(total) / 1024**3:.2f} GiB ({percent:.1f}%)", file=sys.stderr)
+        else:
+            print(f"[download] {current / 1024**3:.2f} GiB", file=sys.stderr)
+    elif kind == "download-complete":
+        print(f"[download] complete: {event.get('path')}", file=sys.stderr)
+    elif kind == "download-skip":
+        print(f"[download] reuse: {event.get('path')}", file=sys.stderr)
+    elif kind == "import-start":
+        print(f"[import] building catalog: {event.get('db')}", file=sys.stderr)
+    elif kind == "import-complete":
+        print(f"[import] complete: {event.get('manifest')}", file=sys.stderr)
 
 
 def main() -> int:
@@ -68,6 +93,23 @@ def main() -> int:
     cmd.add_argument("paths", nargs="+")
     cmd.add_argument("--db", default=".cyber-library/catalog.sqlite3")
     cmd.add_argument("--limit-each", type=int)
+    cmd.add_argument("--skip-reindex", action="store_true", help="skip final search/ISBN-space index rebuild")
+
+    cmd = sub.add_parser(
+        "bootstrap-openlibrary",
+        help="download official latest Open Library dumps, import them and rebuild indexes",
+    )
+    cmd.add_argument("--db", default=".cyber-library/catalog.sqlite3")
+    cmd.add_argument("--download-dir", default=".cyber-library/dumps")
+    cmd.add_argument(
+        "--kinds",
+        nargs="+",
+        choices=sorted(OPENLIBRARY_DUMP_URLS),
+        default=["authors", "works", "editions"],
+        help="dump groups to download/import",
+    )
+    cmd.add_argument("--force-download", action="store_true", help="discard completed/partial files and download again")
+    cmd.add_argument("--limit-each", type=int, help="development/testing limit per dump")
     cmd.add_argument("--skip-reindex", action="store_true", help="skip final search/ISBN-space index rebuild")
 
     cmd = sub.add_parser("reindex", help="rebuild search and ISBN-space indexes")
@@ -129,6 +171,24 @@ def main() -> int:
     if args.command == "import-dump":
         _dump(import_openlibrary_dumps(args.paths, args.db, limit_each=args.limit_each, reindex=not args.skip_reindex))
         return 0
+
+    if args.command == "bootstrap-openlibrary":
+        try:
+            _dump(
+                bootstrap_openlibrary(
+                    db_path=args.db,
+                    download_dir=args.download_dir,
+                    kinds=args.kinds,
+                    force_download=args.force_download,
+                    limit_each=args.limit_each,
+                    reindex=not args.skip_reindex,
+                    progress=_bootstrap_progress,
+                )
+            )
+            return 0
+        except (DownloadError, ValueError, OSError) as exc:
+            _dump({"error": "bootstrap_failed", "detail": str(exc)})
+            return 6
 
     if args.command == "reindex":
         db = CatalogDB(args.db, index_on_write=False)
