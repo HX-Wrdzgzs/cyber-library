@@ -39,7 +39,7 @@ def _timestamp_text(value: datetime) -> str:
     return value.astimezone(timezone.utc).isoformat()
 
 
-def _normalize_work(raw: dict) -> dict:
+def _canonical_work(raw: dict) -> dict:
     subjects = [str(x) for x in (raw.get("subjects") or []) if isinstance(x, str)]
     if not subjects:
         return raw
@@ -47,12 +47,15 @@ def _normalize_work(raw: dict) -> dict:
     return raw if normalized == subjects else {**raw, "subjects": normalized}
 
 
-class OpenLibraryRecentClient:
-    """Low-volume RecentChanges client for keeping a dump-based catalog warm.
+def _upsert_work_preserving_raw(catalog: CatalogDB, key: str, raw: dict) -> None:
+    canonical = _canonical_work(raw)
+    catalog.upsert_work(key, canonical)
+    if canonical is not raw:
+        catalog.db.execute("UPDATE works SET raw_json=? WHERE id=?", (json.dumps(raw, ensure_ascii=False), key))
 
-    This is intentionally capped by the caller. It is not a replacement for Open
-    Library monthly dumps.
-    """
+
+class OpenLibraryRecentClient:
+    """Low-volume RecentChanges client for keeping a dump-based catalog warm."""
 
     def __init__(self, cache: JsonCache | None = None, contact: str | None = None, timeout: float = 20.0) -> None:
         self.base = OpenLibraryClient(cache=cache, contact=contact, timeout=timeout)
@@ -94,13 +97,11 @@ class OpenLibraryRecentClient:
 
 def ensure_refresh_schema(catalog: CatalogDB) -> None:
     with catalog._lock:
-        catalog.db.execute(
-            """CREATE TABLE IF NOT EXISTS catalog_refresh_state(
+        catalog.db.execute("""CREATE TABLE IF NOT EXISTS catalog_refresh_state(
               source TEXT PRIMARY KEY,
               checkpoint TEXT NOT NULL,
               updated_at TEXT NOT NULL
-            )"""
-        )
+            )""")
         catalog.db.commit()
 
 
@@ -153,7 +154,6 @@ def _collect_changes(client: RecentChangesClient, since: datetime, max_changes: 
     selected: list[dict] = []
     offset = 0
     reached_checkpoint = False
-
     while len(selected) < max_changes and offset <= 10000:
         take = min(page_size, max_changes - len(selected))
         page = client.recent_changes(take, offset)
@@ -177,9 +177,7 @@ def _collect_changes(client: RecentChangesClient, since: datetime, max_changes: 
         if reached_checkpoint or len(page) < take or len(selected) >= max_changes:
             break
         offset += len(page)
-
-    truncated = not reached_checkpoint and len(selected) >= max_changes
-    return selected, truncated
+    return selected, (not reached_checkpoint and len(selected) >= max_changes)
 
 
 def _reindex_work(catalog: CatalogDB, work_key: str) -> int:
@@ -199,21 +197,11 @@ def _reindex_author(catalog: CatalogDB, author_key: str) -> int:
     return count
 
 
-def refresh_openlibrary(
-    db_path: str | Path,
-    *,
-    client: RecentChangesClient,
-    since: str | None = None,
-    max_changes: int = 250,
-    max_documents: int = 500,
-    rebuild_universe: bool = False,
-) -> dict[str, Any]:
-    """Apply a bounded recent-change window to a dump-backed local catalog."""
+def refresh_openlibrary(db_path: str | Path, *, client: RecentChangesClient, since: str | None = None, max_changes: int = 250, max_documents: int = 500, rebuild_universe: bool = False) -> dict[str, Any]:
     if max_changes < 1 or max_changes > MAX_CHANGES_PER_RUN:
         raise ValueError(f"max_changes must be between 1 and {MAX_CHANGES_PER_RUN}")
     if max_documents < 1 or max_documents > MAX_DOCUMENTS_PER_RUN:
         raise ValueError(f"max_documents must be between 1 and {MAX_DOCUMENTS_PER_RUN}")
-
     catalog = CatalogDB(db_path)
     try:
         checkpoint = since or get_refresh_checkpoint(catalog)
@@ -224,7 +212,6 @@ def refresh_openlibrary(
         keys = _change_keys(changesets)
         documents_truncated = len(keys) > max_documents
         keys = keys[:max_documents]
-
         counts = {"authors": 0, "works": 0, "editions": 0, "not_found": 0, "errors": 0, "reindexed": 0}
         failures: list[dict[str, str]] = []
         for key in keys:
@@ -234,40 +221,19 @@ def refresh_openlibrary(
                     catalog.upsert_author(key, raw); counts["authors"] += 1
                     counts["reindexed"] += _reindex_author(catalog, key)
                 elif key.startswith("/works/"):
-                    catalog.upsert_work(key, _normalize_work(raw)); counts["works"] += 1
+                    _upsert_work_preserving_raw(catalog, key, raw); counts["works"] += 1
                     counts["reindexed"] += _reindex_work(catalog, key)
                 elif key.startswith("/books/"):
                     catalog.upsert_edition(key, raw); counts["editions"] += 1
             except NotFound:
-                counts["not_found"] += 1
-                failures.append({"key": key, "error": "not_found"})
+                counts["not_found"] += 1; failures.append({"key": key, "error": "not_found"})
             except (SourceError, ValueError, TypeError, KeyError) as exc:
-                counts["errors"] += 1
-                failures.append({"key": key, "error": str(exc)})
+                counts["errors"] += 1; failures.append({"key": key, "error": str(exc)})
         catalog.commit()
-
         newest = max((_parse_timestamp(str(item["timestamp"])) for item in changesets if isinstance(item.get("timestamp"), str)), default=None)
         safe = not truncated and not documents_truncated and not failures
-        advanced_to = None
-        if safe and newest is not None:
-            advanced_to = set_refresh_checkpoint(catalog, _timestamp_text(newest))
-
-        universe = None
-        if rebuild_universe and counts["editions"]:
-            universe = build_universe_tiles(catalog, force=True)
-
-        return {
-            "source": "openlibrary",
-            "previous_checkpoint": _timestamp_text(since_dt),
-            "checkpoint_advanced_to": advanced_to,
-            "changesets": len(changesets),
-            "documents": len(keys),
-            "truncated": truncated,
-            "documents_truncated": documents_truncated,
-            "counts": counts,
-            "failures": failures,
-            "universe": universe,
-            "guidance": "Use a newer monthly dump if truncated=true; RecentChanges is not a bulk ingestion API." if truncated or documents_truncated else None,
-        }
+        advanced_to = set_refresh_checkpoint(catalog, _timestamp_text(newest)) if safe and newest is not None else None
+        universe = build_universe_tiles(catalog, force=True) if rebuild_universe and counts["editions"] else None
+        return {"source": "openlibrary", "previous_checkpoint": _timestamp_text(since_dt), "checkpoint_advanced_to": advanced_to, "changesets": len(changesets), "documents": len(keys), "truncated": truncated, "documents_truncated": documents_truncated, "counts": counts, "failures": failures, "universe": universe, "guidance": "Use a newer monthly dump if truncated=true; RecentChanges is not a bulk ingestion API." if truncated or documents_truncated else None}
     finally:
         catalog.close()

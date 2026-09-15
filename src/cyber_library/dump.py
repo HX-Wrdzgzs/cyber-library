@@ -35,7 +35,7 @@ def _newest(current: str | None, candidate: str | None) -> str | None:
     return current
 
 
-def _normalize_work(raw: dict) -> dict:
+def _canonical_work(raw: dict) -> dict:
     subjects = [str(x) for x in (raw.get("subjects") or []) if isinstance(x, str)]
     if not subjects:
         return raw
@@ -43,6 +43,13 @@ def _normalize_work(raw: dict) -> dict:
     if normalized == subjects:
         return raw
     return {**raw, "subjects": normalized}
+
+
+def _upsert_work_preserving_raw(db: CatalogDB, key: str, raw: dict) -> None:
+    canonical = _canonical_work(raw)
+    db.upsert_work(key, canonical)
+    if canonical is not raw:
+        db.db.execute("UPDATE works SET raw_json=? WHERE id=?", (json.dumps(raw, ensure_ascii=False), key))
 
 
 def import_openlibrary_dump(path: str | Path, db_path: str | Path, limit: int | None = None, commit_every: int = 5000, reindex: bool = False) -> dict[str, int | str | None]:
@@ -64,7 +71,7 @@ def import_openlibrary_dump(path: str | Path, db_path: str | Path, limit: int | 
                     counts["latest_modified"] = _newest(counts.get("latest_modified") if isinstance(counts.get("latest_modified"), str) else None, normalized_modified)
                     raw = json.loads(payload)
                     if typ == "/type/work":
-                        db.upsert_work(key, _normalize_work(raw)); counts["works"] = int(counts["works"] or 0) + 1
+                        _upsert_work_preserving_raw(db, key, raw); counts["works"] = int(counts["works"] or 0) + 1
                     elif typ == "/type/edition":
                         db.upsert_edition(key, raw); counts["editions"] = int(counts["editions"] or 0) + 1
                     elif typ == "/type/author":
