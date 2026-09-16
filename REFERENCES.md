@@ -28,6 +28,10 @@ Cyber Library keeps external platform, catalog, identifier, authority, deploymen
 
 ## Deployment Docs
 
+- **[Cloudflare Pages custom domains](https://developers.cloudflare.com/pages/configuration/custom-domains/)** — Custom-domain association and DNS setup for Pages deployments.  
+  Reference ID: `cloudflare-pages-custom-domains`
+- **[Cloudflare Pages custom headers](https://developers.cloudflare.com/pages/configuration/headers/)** — Repository-defined static response headers through the _headers file.  
+  Reference ID: `cloudflare-pages-headers`
 - **[OpenSearch Bulk API](https://docs.opensearch.org/latest/api-reference/document-apis/bulk/)** — Optional rebuildable search mirror.  
   Reference ID: `opensearch-bulk`
 - **[Qdrant Upsert Points API](https://api.qdrant.tech/api-reference/points/upsert-points)** — Optional rebuildable ANN/vector mirror.  
@@ -47,6 +51,12 @@ Cyber Library keeps external platform, catalog, identifier, authority, deploymen
 
 ## Platform Docs
 
+- **[Cloudflare Pages build configuration](https://developers.cloudflare.com/pages/configuration/build-configuration/)** — Build commands, output directories and Pages build environment variables.  
+  Reference ID: `cloudflare-pages-build-config`
+- **[Cloudflare Pages build image](https://developers.cloudflare.com/pages/configuration/build-image/)** — Supported build runtimes including Python and version overrides.  
+  Reference ID: `cloudflare-pages-build-image`
+- **[Cloudflare Pages Git integration](https://developers.cloudflare.com/pages/configuration/git-integration/)** — Automatic Cloudflare Pages builds and deployments from GitHub.  
+  Reference ID: `cloudflare-pages-git`
 - **[GitHub Pages custom workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)** — Static-site build and deployment through GitHub Actions.  
   Reference ID: `github-pages-workflows`
 
