@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.2.0 — 2026-09-16
+
+- Replaced the monolithic GitHub static catalog payload with a lightweight `site-data/index.json` plus one complete JSON shard per record.
+- Added lazy full-record loading for ISBN/detail/graph views while keeping search, Knowledge Space and Universe navigation on the lightweight index.
+- Added deterministic record shard names derived from stable record identity.
+- Added `site-data/manifest.json` with byte size and SHA-256 for every generated static data file.
+- Expanded GitHub-only regression tests to verify index/shard identity, manifest coverage and integrity metadata.
+- Kept browser compatibility with the earlier v3.1 static format and with the optional Python REST API.
+
 ## 3.1.0 — 2026-09-16
 
 - Made GitHub-only operation a first-class public deployment path using repository data, GitHub Actions and GitHub Pages.

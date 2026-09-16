@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shutil
@@ -16,6 +17,14 @@ REPO_URL = "https://github.com/HX-Wrdzgzs/cyber-library"
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def _iter_records(root: Path) -> Iterable[tuple[Path, dict]]:
@@ -61,6 +70,37 @@ def _record_for_static(path: Path, record: dict, root: Path) -> dict:
     return item
 
 
+def _lite_record(item: dict, record_file: str) -> dict:
+    work = item.get("work") or {}
+    edition = item.get("edition") or {}
+    analysis = item.get("analysis") or {}
+    return {
+        "work": {
+            "id": work.get("id"),
+            "title": work.get("title"),
+            "authors": list(work.get("authors") or []),
+            "subjects": list(work.get("subjects") or []),
+            "categories": list(work.get("categories") or analysis.get("categories") or []),
+        },
+        "edition": {
+            "id": edition.get("id"),
+            "work_id": edition.get("work_id"),
+            "title": edition.get("title"),
+            "language": edition.get("language"),
+            "publishers": list(edition.get("publishers") or []),
+            "publish_date": edition.get("publish_date"),
+            "page_count": edition.get("page_count"),
+            "identifiers": edition.get("identifiers") or {},
+            "cover_url": edition.get("cover_url"),
+            "physical_format": edition.get("physical_format"),
+        },
+        "analysis_level": analysis.get("level") or "L0",
+        "repository_path": item.get("repository_path"),
+        "universe": item.get("universe"),
+        "record_file": record_file,
+    }
+
+
 def _markdown_files(root: Path) -> list[str]:
     ignored = {".git", ".venv", "node_modules", "_site", "dist"}
     files: list[str] = []
@@ -85,41 +125,84 @@ def build_github_site(root: str | Path = ".", output: str | Path = "_site") -> d
         if path.is_file():
             shutil.copy2(path, output / path.name)
 
-    records = [_record_for_static(path, record, root) for path, record in _iter_records(root)]
-    records.sort(key=lambda item: (str(item.get("work", {}).get("title") or "").casefold(), str(item.get("edition", {}).get("id") or "")))
-    categories = sorted({str(cat) for item in records for cat in (item.get("work", {}).get("categories") or item.get("analysis", {}).get("categories") or []) if cat})
-    subjects = sorted({str(subject) for item in records for subject in (item.get("work", {}).get("subjects") or []) if subject})
     data_dir = output / "site-data"
-    data_dir.mkdir(parents=True)
-    catalog = {
-        "format": "cyber-library-github-static",
-        "version": 1,
+    records_dir = data_dir / "records"
+    records_dir.mkdir(parents=True)
+
+    full_records = [_record_for_static(path, record, root) for path, record in _iter_records(root)]
+    full_records.sort(key=lambda item: (str(item.get("work", {}).get("title") or "").casefold(), str(item.get("edition", {}).get("id") or "")))
+
+    index_records: list[dict] = []
+    record_files: list[Path] = []
+    for item in full_records:
+        identity = str(item.get("edition", {}).get("id") or item.get("repository_path") or json.dumps(item, sort_keys=True))
+        name = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:20] + ".json"
+        rel = f"records/{name}"
+        path = data_dir / rel
+        path.write_text(json.dumps(item, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        record_files.append(path)
+        index_records.append(_lite_record(item, rel))
+
+    categories = sorted({str(cat) for item in index_records for cat in (item.get("work", {}).get("categories") or []) if cat})
+    subjects = sorted({str(subject) for item in index_records for subject in (item.get("work", {}).get("subjects") or []) if subject})
+    stats = {"works": len({str(item.get('work', {}).get('id')) for item in index_records}), "editions": len(index_records), "llm_enabled": False}
+    index = {
+        "format": "cyber-library-github-index",
+        "version": 2,
         "project_version": __version__,
         "generated_at": _now(),
         "repository": REPO_URL,
-        "records": records,
+        "records": index_records,
         "categories": categories,
         "subjects": subjects,
-        "stats": {"works": len({str(item.get('work', {}).get('id')) for item in records}), "editions": len(records), "llm_enabled": False},
+        "stats": stats,
     }
-    (data_dir / "catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
+    index_path = data_dir / "index.json"
+    index_path.write_text(json.dumps(index, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
     refs_path = root / "references" / "sources.json"
     refs = json.loads(refs_path.read_text(encoding="utf-8")) if refs_path.exists() else {"sources": []}
-    (data_dir / "references.json").write_text(json.dumps(refs, ensure_ascii=False, indent=2), encoding="utf-8")
+    references_path = data_dir / "references.json"
+    references_path.write_text(json.dumps(refs, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
     project = {
         "name": "Cyber Library",
         "version": __version__,
         "repository": REPO_URL,
         "generated_at": _now(),
         "markdown": _markdown_files(root),
+        "index": "./site-data/index.json",
         "references": "./site-data/references.json",
         "mode": "github-only",
     }
-    (data_dir / "project.json").write_text(json.dumps(project, ensure_ascii=False, indent=2), encoding="utf-8")
+    project_path = data_dir / "project.json"
+    project_path.write_text(json.dumps(project, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+    files = [index_path, references_path, project_path, *record_files]
+    manifest = {
+        "format": "cyber-library-github-manifest",
+        "version": 1,
+        "project_version": __version__,
+        "generated_at": _now(),
+        "records": len(index_records),
+        "files": [
+            {"path": path.relative_to(data_dir).as_posix(), "bytes": path.stat().st_size, "sha256": _sha256(path)}
+            for path in sorted(files)
+        ],
+    }
+    manifest_path = data_dir / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+
     (output / ".nojekyll").write_text("", encoding="utf-8")
     shutil.copy2(output / "index.html", output / "404.html")
-    return {"output": str(output), "records": len(records), "categories": len(categories), "markdown": len(project["markdown"])}
+    return {
+        "output": str(output),
+        "records": len(index_records),
+        "record_files": len(record_files),
+        "categories": len(categories),
+        "markdown": len(project["markdown"]),
+        "manifest": str(manifest_path),
+    }
 
 
 _LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")

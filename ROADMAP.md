@@ -66,8 +66,18 @@
 - [x] GitHub Pages workflow plus normal CI static-site artifact build
 - [x] Pages-safe relative asset paths and `.nojekyll` output
 
+## v3.2 — GitHub-native static catalog scaling
+
+- [x] lightweight `site-data/index.json` for search/navigation
+- [x] one complete JSON shard per catalog record under `site-data/records/`
+- [x] lazy full-record fetching on ISBN/detail navigation
+- [x] deterministic record shard filenames
+- [x] `site-data/manifest.json` with byte sizes and SHA-256 digests
+- [x] static build regression tests for index/shard/manifest consistency
+- [x] backward-compatible browser probe for the v3.1 static catalog format
+
 ## Completion boundary
 
-The planned repository roadmap is complete through v3.1. GitHub-only mode is the first-class public deployment path and requires no separately managed server. The repository remains the reproducible source of truth for code, sourced static records, references, build rules and tests.
+The planned repository roadmap is complete through v3.2. GitHub-only mode is the first-class public deployment path and requires no separately managed server. The repository remains the reproducible source of truth for code, sourced static records, references, build rules and tests.
 
-Large third-party bulk datasets are intentionally not committed wholesale into Git. Coverage grows through sourced records and reproducible imports while provenance remains explicit.
+Large third-party bulk datasets are intentionally not committed wholesale into Git. The v3.2 index/shard/manifest format provides a verifiable GitHub-native distribution boundary that can later be partitioned into additional Actions or Release assets without changing the canonical model.

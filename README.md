@@ -2,11 +2,9 @@
 
 > Explore humanity's published knowledge — directly from GitHub.
 
-Cyber Library is an open, evidence-aware map of books and published knowledge. It separates Work, Edition, identifiers, provenance and generated interpretation, and it can now run publicly with **GitHub only**: repository + GitHub Actions + GitHub Pages. No VPS, database server, reverse proxy or always-on process is required for the public static mode.
+Cyber Library is an open, evidence-aware map of books and published knowledge. It separates Work, Edition, identifiers, provenance and generated interpretation. The default public deployment is **GitHub-only**: repository + GitHub Actions + GitHub Pages. No separately managed server is required.
 
 ## GitHub-only quick start
-
-The repository contains a serverless site builder and a Pages workflow.
 
 ```bash
 python -m pip install -e .
@@ -14,13 +12,31 @@ cyber-library-github check
 cyber-library-github build --out _site
 ```
 
-For public hosting, perform the one-time GitHub setting:
+One-time Pages setup remains inside GitHub:
 
 1. Repository **Settings → Pages**.
 2. **Build and deployment → Source → GitHub Actions**.
 3. **Actions → GitHub Pages → Run workflow**.
 
-The workflow lives at [`.github/workflows/pages.yml`](.github/workflows/pages.yml). The resulting site is built entirely from this repository. See [`docs/github-only.md`](docs/github-only.md).
+The deployment workflow is [`.github/workflows/pages.yml`](.github/workflows/pages.yml). See [`docs/github-only.md`](docs/github-only.md).
+
+## v3.2 GitHub static data model
+
+The Pages build does not put every full book object into one giant JSON file. It emits:
+
+```text
+site-data/
+  index.json             lightweight search/navigation index
+  records/
+    <hash>.json          one complete book record per file
+  references.json        upstream/reference index
+  project.json           project/build metadata
+  manifest.json          file sizes + SHA-256 integrity digests
+```
+
+Search, Knowledge Space and ISBN Universe load only `index.json`. Opening a specific book lazily fetches its full record shard. This keeps the browser startup bounded as committed catalog coverage grows.
+
+The SHA-256 manifest also gives later GitHub Actions / Release asset workflows a verifiable static format without requiring a Cyber Library backend service.
 
 ## What GitHub Pages mode supports
 
@@ -29,15 +45,15 @@ The workflow lives at [`.github/workflows/pages.yml`](.github/workflows/pages.ym
 - Work / Edition details and provenance
 - Knowledge Space concept / author / publisher views
 - ISBN Universe points for committed ISBN records
-- browser-local deterministic text analysis; user text is not uploaded by the static mode
+- browser-local deterministic text analysis; pasted text is not uploaded to a Cyber Library server
 - machine-readable source/reference index
-- the same shared `web/` interface used by the optional local Python API
+- one shared UI that automatically falls back to the optional Python REST API when static data is absent
 
-Static catalog records live under [`data/catalog/`](data/catalog/). A build generates `site-data/catalog.json`, `site-data/references.json` and `site-data/project.json` inside the Pages artifact.
+Static source records live under [`data/catalog/`](data/catalog/). [`data/catalog/pride-and-prejudice.json`](data/catalog/pride-and-prejudice.json) is a sourced real-ISBN example; [`data/samples/book.sample.json`](data/samples/book.sample.json) remains a synthetic model example.
 
 ## Evidence and references
 
-Cyber Library does not treat generated text as bibliographic fact. Metadata, external links, authority candidates and analysis evidence remain separate.
+Cyber Library does not treat generated text as bibliographic fact. Metadata, authority candidates, external identifiers and generated interpretation are kept in separate evidence/provenance layers.
 
 - Human-readable source index: [`docs/references.md`](docs/references.md)
 - Machine-readable source index: [`references/sources.json`](references/sources.json)
@@ -46,57 +62,34 @@ Cyber Library does not treat generated text as bibliographic fact. Metadata, ext
 
 `cyber-library-github check` validates repository-local Markdown links in CI.
 
-## Add a book to the GitHub catalog
-
-Add a sourced JSON record under `data/catalog/` using the normal Cyber Library shape:
-
-```text
-Work
-  └─ Edition
-       ├─ identifiers
-       ├─ provenance
-       └─ evidence / analysis (only when supported)
-```
-
-Do not commit copyrighted full text merely to make the static site richer. Metadata-only records should remain L0/L1 unless lawful source-backed material exists.
-
-The repository includes [`data/catalog/pride-and-prejudice.json`](data/catalog/pride-and-prejudice.json) as a real sourced ISBN example and [`data/samples/book.sample.json`](data/samples/book.sample.json) as a synthetic schema demonstration.
-
 ## GitHub Actions artifacts
 
-The normal CI validates Python 3.11–3.13, JavaScript syntax, Markdown links and the GitHub-only site builder. The Python 3.13 job also builds `_site` and uploads it as a GitHub Actions artifact, so even before Pages is enabled the complete static site remains inside GitHub.
+The normal CI validates Python 3.11–3.13, JavaScript syntax, repository Markdown links and the complete GitHub-only build. The Python 3.13 job uploads `_site` as the `cyber-library-github-site` Actions artifact, so a deployable static build exists entirely within GitHub even before Pages is switched on.
 
 ## Large catalog boundary
 
-Open Library's public API is intended for low-volume human-facing lookup; bulk users are directed to monthly data dumps. Those dumps are too large for a normal Git repository and should not be committed wholesale.
+Open Library's public API is for low-volume human-facing lookups; bulk users are directed to monthly dumps. Those dumps are too large for an ordinary Git repository and are intentionally not committed wholesale.
 
-Cyber Library therefore keeps the **reproducible catalog model, importer, provenance rules, static-site generator and bounded committed records in GitHub**. Large generated catalogs can later be sharded into GitHub-managed artifacts/releases without introducing a separately managed server.
+Cyber Library keeps the reproducible catalog model, importer, source references, build rules, bounded committed records and generated static format in GitHub. Larger generated catalogs can use the same index/record/manifest model with additional sharding and GitHub Release/Actions assets rather than a separately managed server.
 
 See [`docs/data-sources.md`](docs/data-sources.md) and [`docs/github-only.md`](docs/github-only.md).
 
-## Full local catalog remains available
+## Optional local full catalog
 
-GitHub-only is now the default public deployment path, but the original local/portable core remains available when you want a large catalog on a machine you control:
+GitHub-only is the default public path, but the original portable local catalog remains useful for bulk data on a machine someone controls:
 
 ```bash
 cyber-library bootstrap-openlibrary
 cyber-library serve --db .cyber-library/catalog.sqlite3
 ```
 
-The shared front end automatically falls back to the real `/api/*` endpoints when `site-data/catalog.json` is absent.
+The shared browser UI automatically uses the real `/api/*` endpoints when generated Pages data is absent.
 
 ## Search and knowledge navigation
-
-Local lexical / semantic search:
 
 ```bash
 cyber-library search "machine learning" --db .cyber-library/catalog.sqlite3 --no-live
 cyber-library-semantic index --db .cyber-library/catalog.sqlite3
-```
-
-Knowledge Space:
-
-```bash
 cyber-library-knowledge concept "Machine learning" --db .cyber-library/catalog.sqlite3
 cyber-library-knowledge author "Author Name" --db .cyber-library/catalog.sqlite3
 cyber-library-knowledge publisher "Publisher Name" --db .cyber-library/catalog.sqlite3
@@ -114,7 +107,7 @@ cyber-library-source authority "Author Name" --source loc
 cyber-library-source citations 10.xxxx/example --source crossref
 ```
 
-Built-in sources include Open Library, Wikidata, Crossref and Library of Congress adapters with explicit provenance and ambiguity-safe authority behavior. See [`docs/sources.md`](docs/sources.md).
+Built-in adapters cover Open Library, Wikidata, Crossref and Library of Congress with explicit provenance and ambiguity-safe authority handling. See [`docs/sources.md`](docs/sources.md).
 
 ## ISBN Universe
 
@@ -124,7 +117,7 @@ cyber-library-scale rebuild --db .cyber-library/catalog.sqlite3
 cyber-library-export universe --db .cyber-library/catalog.sqlite3 --out public-universe
 ```
 
-The mapping is an independent Cyber Library Hilbert implementation. No `phiresky/isbn-visualization` implementation is copied. See [`docs/universe.md`](docs/universe.md).
+The mapping is an independent Cyber Library Hilbert implementation; no `phiresky/isbn-visualization` implementation is copied. See [`docs/universe.md`](docs/universe.md).
 
 ## Book intelligence
 
@@ -135,13 +128,11 @@ L2  source-backed structured material
 L3  lawful full-text analysis
 ```
 
-Local file analysis remains available for TXT / Markdown / EPUB and optional PDF when the user has rights to process the content. GitHub Pages mode uses a deterministic browser-local text analyzer and does not send pasted text to a Cyber Library server.
-
-See [`docs/book-intelligence.md`](docs/book-intelligence.md).
+Local file analysis supports TXT / Markdown / EPUB and optional PDF when the user has rights to process the content. GitHub Pages mode uses deterministic browser-local text analysis. See [`docs/book-intelligence.md`](docs/book-intelligence.md).
 
 ## Optional deployment adapters
 
-v3 added PostgreSQL/PostGIS, OpenSearch, Qdrant and S3-compatible adapters. They are **not required** by the GitHub-only public mode.
+PostgreSQL/PostGIS, OpenSearch, Qdrant and S3-compatible adapters remain available but are **not required** by GitHub-only public deployment.
 
 ```bash
 cyber-library-deploy status
@@ -151,15 +142,8 @@ See [`docs/deployment-adapters.md`](docs/deployment-adapters.md).
 
 ## Install
 
-Core:
-
 ```bash
 pip install -e .
-```
-
-Optional extras:
-
-```bash
 pip install -e '.[pdf]'
 pip install -e '.[postgres]'
 pip install -e '.[s3]'
@@ -170,17 +154,17 @@ pip install -e '.[deploy]'
 
 ```text
 .github/workflows/      CI and GitHub Pages workflows
-data/catalog/           sourced records published by GitHub-only builds
+data/catalog/           sourced records included in GitHub builds
 data/samples/           synthetic schema examples
-docs/                   architecture, operation and references
+docs/                   architecture, operation and source references
 references/             machine-readable sources and prior-art notes
 src/cyber_library/      catalog, analysis, source, build and deployment code
 tests/                  deterministic unit/regression tests
-web/                    shared browser explorer + GitHub static API shim
+web/                    shared browser explorer and GitHub static API shim
 ```
 
 ## Project status
 
-The planned repository roadmap is complete through **v3.1.0**. v3.1 makes GitHub-only operation the first-class public deployment: static catalog, browser-local functionality, Pages workflow, Actions artifact build, machine-readable references and Markdown-link validation all live in this repository.
+The planned repository roadmap is complete through **v3.2.0**. GitHub-only mode now has a lazy static catalog format, independently addressable record shards and an integrity manifest in addition to the Pages runtime and Actions artifact build.
 
 See [`ROADMAP.md`](ROADMAP.md) and [`CHANGELOG.md`](CHANGELOG.md).
