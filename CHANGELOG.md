@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.3.0 — 2026-09-16
+
+- Added `cyber-library-catalog add-isbn` to resolve an ISBN through the existing rate-safe Open Library client and write a commit-ready L0 record under `data/catalog/`.
+- Added `cyber-library-catalog validate` to require a Work, Edition ID, checksum-valid ISBN and non-empty provenance for sourced catalog records.
+- Made ISBN additions idempotent by default with explicit overwrite behavior.
+- Added deterministic mocked ingestion/validation tests that do not depend on public network availability.
+- Added the `Add ISBN to Catalog` manual GitHub Actions workflow with `contents: write` permission and direct commits to `main`.
+- Passed workflow inputs through environment variables instead of interpolating untrusted values into shell commands.
+- Made the catalog workflow validate records, Markdown and JavaScript, build the static site and upload a validated site artifact before committing.
+
 ## 3.2.0 — 2026-09-16
 
 - Replaced the monolithic GitHub static catalog payload with a lightweight `site-data/index.json` plus one complete JSON shard per record.

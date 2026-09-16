@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cyber-library"
-version = "3.2.0"
+version = "3.3.0"
 description = "Evidence-aware global book catalog, knowledge graph, analysis engine and ISBN universe."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -30,6 +30,7 @@ cyber-library-benchmark = "cyber_library.benchmark_cli:main"
 cyber-library-export = "cyber_library.export_cli:main"
 cyber-library-deploy = "cyber_library.deployment_cli:main"
 cyber-library-github = "cyber_library.github_site:main"
+cyber-library-catalog = "cyber_library.catalog_ingest:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

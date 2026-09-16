@@ -76,8 +76,19 @@
 - [x] static build regression tests for index/shard/manifest consistency
 - [x] backward-compatible browser probe for the v3.1 static catalog format
 
+## v3.3 — GitHub-native catalog maintenance
+
+- [x] `cyber-library-catalog add-isbn` sourced ISBN ingestion command
+- [x] `cyber-library-catalog validate` provenance and ISBN validation
+- [x] idempotent ISBN additions with explicit overwrite behavior
+- [x] mocked ingestion tests without public-network dependency
+- [x] `workflow_dispatch` Add ISBN workflow with `contents: write`
+- [x] safe workflow input handling through environment variables
+- [x] catalog/Markdown/JavaScript/static-build validation before direct commit
+- [x] validated GitHub Actions site artifact produced before catalog commit
+
 ## Completion boundary
 
-The planned repository roadmap is complete through v3.2. GitHub-only mode is the first-class public deployment path and requires no separately managed server. The repository remains the reproducible source of truth for code, sourced static records, references, build rules and tests.
+The planned repository roadmap is complete through v3.3. GitHub-only mode is the first-class public and maintenance path: code, sourced records, references, validation, static builds, Actions artifacts and routine ISBN ingestion live inside GitHub.
 
-Large third-party bulk datasets are intentionally not committed wholesale into Git. The v3.2 index/shard/manifest format provides a verifiable GitHub-native distribution boundary that can later be partitioned into additional Actions or Release assets without changing the canonical model.
+Large third-party bulk datasets are intentionally not committed wholesale into Git. The index/shard/manifest format provides a verifiable GitHub-native distribution boundary that can be partitioned into additional Actions or Release assets without changing the canonical model.

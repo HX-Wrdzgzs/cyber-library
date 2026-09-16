@@ -23,6 +23,7 @@ jobs:
       - run: node --check web/app.js
       - run: node --check web/knowledge.js
       - run: cyber-library-github check
+      - run: cyber-library-catalog validate
       - run: cyber-library isbn 0-306-40615-2
       - run: cyber-library space 9780306406157
       - run: cyber-library categories
