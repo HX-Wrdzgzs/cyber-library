@@ -8,6 +8,41 @@
       "purpose": "Static-site build and deployment through GitHub Actions."
     },
     {
+      "id": "cloudflare-pages-git",
+      "name": "Cloudflare Pages Git integration",
+      "kind": "platform-docs",
+      "url": "https://developers.cloudflare.com/pages/configuration/git-integration/",
+      "purpose": "Automatic Cloudflare Pages builds and deployments from GitHub."
+    },
+    {
+      "id": "cloudflare-pages-build-config",
+      "name": "Cloudflare Pages build configuration",
+      "kind": "platform-docs",
+      "url": "https://developers.cloudflare.com/pages/configuration/build-configuration/",
+      "purpose": "Build commands, output directories and Pages build environment variables."
+    },
+    {
+      "id": "cloudflare-pages-build-image",
+      "name": "Cloudflare Pages build image",
+      "kind": "platform-docs",
+      "url": "https://developers.cloudflare.com/pages/configuration/build-image/",
+      "purpose": "Supported build runtimes including Python and version overrides."
+    },
+    {
+      "id": "cloudflare-pages-custom-domains",
+      "name": "Cloudflare Pages custom domains",
+      "kind": "deployment-docs",
+      "url": "https://developers.cloudflare.com/pages/configuration/custom-domains/",
+      "purpose": "Custom-domain association and DNS setup for Pages deployments."
+    },
+    {
+      "id": "cloudflare-pages-headers",
+      "name": "Cloudflare Pages custom headers",
+      "kind": "deployment-docs",
+      "url": "https://developers.cloudflare.com/pages/configuration/headers/",
+      "purpose": "Repository-defined static response headers through the _headers file."
+    },
+    {
       "id": "github-citation-files",
       "name": "GitHub citation files",
       "kind": "citation-docs",
