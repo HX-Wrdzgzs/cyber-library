@@ -11,6 +11,7 @@ Everything needed for the public project lives in this repository.
 ```bash
 python -m pip install -e .
 cyber-library-catalog validate
+cyber-library-references check
 cyber-library-github check
 cyber-library-github build --out _site
 ```
@@ -25,18 +26,9 @@ The deployment workflow is [`.github/workflows/pages.yml`](.github/workflows/pag
 
 ## Add books without leaving GitHub
 
-Routine catalog maintenance does not require a local checkout or a server.
+Open **Actions → Add ISBN to Catalog → Run workflow**, enter an ISBN, and GitHub Actions will normalize it, resolve Open Library metadata, create a provenance-backed L0 JSON record, validate the repository, build a static site artifact, and direct-commit the catalog change to `main`.
 
-Open **Actions → Add ISBN to Catalog → Run workflow**, enter an ISBN, and GitHub Actions will:
-
-1. validate and normalize the ISBN;
-2. resolve the Edition / Work through the existing rate-safe Open Library client;
-3. generate a metadata-only L0 record with explicit provenance;
-4. validate the complete sourced catalog, Markdown links and browser JavaScript;
-5. build and upload a validated GitHub-only site artifact;
-6. direct-commit the new JSON record to `main`.
-
-The workflow is [`.github/workflows/catalog.yml`](.github/workflows/catalog.yml). The same operation is exposed as:
+The workflow is [`.github/workflows/catalog.yml`](.github/workflows/catalog.yml). The same operation is available as:
 
 ```bash
 cyber-library-catalog add-isbn 9780141439518 --contact you@example.com
@@ -71,26 +63,35 @@ Search, Knowledge Space and ISBN Universe load only `index.json`. Opening a book
 - browser-local deterministic text analysis — pasted text is not uploaded to a Cyber Library server;
 - machine-readable source/reference index;
 - GitHub-native ISBN catalog ingestion and validation;
-- the same shared UI used by the optional Python REST API.
+- one shared UI used by both GitHub static mode and the optional Python REST API.
 
 Static source records live under [`data/catalog/`](data/catalog/). [`data/catalog/pride-and-prejudice.json`](data/catalog/pride-and-prejudice.json) is a sourced real-ISBN example; [`data/samples/book.sample.json`](data/samples/book.sample.json) is a synthetic model example.
 
-## Evidence and references
+## Citation and references
 
-Generated interpretation is not bibliographic fact. Metadata, authority candidates, external identifiers and generated interpretation remain separate.
+Cyber Library now exposes both project-level citation metadata and a synchronized upstream reference index.
 
-- Human-readable source index: [`docs/references.md`](docs/references.md)
-- Machine-readable source index: [`references/sources.json`](references/sources.json)
+- GitHub-native software citation: [`CITATION.cff`](CITATION.cff)
+- Generated root reference index: [`REFERENCES.md`](REFERENCES.md)
+- Human-readable reference policy: [`docs/references.md`](docs/references.md)
+- Machine-readable source registry: [`references/sources.json`](references/sources.json)
 - Licensing and data-rights notes: [`docs/licensing.md`](docs/licensing.md)
 - ISBN visualization prior-art note: [`references/isbn-visualization.md`](references/isbn-visualization.md)
 
-`cyber-library-github check` validates repository-local Markdown links; `cyber-library-catalog validate` enforces sourced-catalog requirements.
+GitHub recognizes `CITATION.cff` on the default branch and can expose **Cite this repository** metadata. The repository uses CFF 1.2.0. `REFERENCES.md` is generated deterministically from `references/sources.json` and CI rejects drift between them.
+
+```bash
+cyber-library-references check
+cyber-library-references render
+```
+
+Generated interpretation is not bibliographic fact. Metadata, authority candidates, external identifiers and generated interpretation remain separate evidence/provenance layers.
 
 ## GitHub Actions artifacts
 
-Normal CI validates Python 3.11–3.13, JavaScript syntax, catalog records, Markdown links and the complete GitHub-only build. The Python 3.13 job uploads `_site` as `cyber-library-github-site`, so a deployable build exists entirely in GitHub before Pages is enabled.
+Normal CI validates Python 3.11–3.13, JavaScript syntax, sourced catalog records, reference synchronization, Markdown links and the complete GitHub-only build. The Python 3.13 job uploads `_site` as `cyber-library-github-site`, so a deployable build exists entirely in GitHub before Pages is enabled.
 
-The Add ISBN workflow also builds and uploads a validated site artifact before it commits catalog changes. This is deliberate because GitHub prevents pushes made with the workflow `GITHUB_TOKEN` from recursively starting another push workflow.
+The Add ISBN workflow also validates and builds before committing. This is deliberate because GitHub prevents pushes made with the workflow `GITHUB_TOKEN` from recursively starting another push workflow.
 
 ## Large catalog boundary
 
@@ -184,13 +185,15 @@ data/catalog/           sourced records included in GitHub builds
 data/samples/           synthetic schema examples
 docs/                   architecture, operation and source references
 references/             machine-readable sources and prior-art notes
-src/cyber_library/      catalog, analysis, source and GitHub build/ingest code
+src/cyber_library/      catalog, analysis, source, build, ingest and reference tooling
 tests/                  deterministic unit/regression tests
 web/                    shared browser explorer and GitHub static API shim
+CITATION.cff            GitHub-native software citation metadata
+REFERENCES.md           generated external reference index
 ```
 
 ## Project status
 
-The planned repository roadmap is complete through **v3.3.0**. GitHub-only mode now covers both serving and routine ISBN catalog maintenance: source resolution, validation, static build, artifact generation and direct catalog commit all execute inside GitHub.
+The planned repository roadmap is complete through **v3.4.0**. GitHub-only mode now covers serving, routine ISBN maintenance, deterministic reference synchronization and GitHub-native software citation metadata.
 
 See [`ROADMAP.md`](ROADMAP.md) and [`CHANGELOG.md`](CHANGELOG.md).

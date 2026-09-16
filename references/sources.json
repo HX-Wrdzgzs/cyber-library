@@ -8,6 +8,20 @@
       "purpose": "Static-site build and deployment through GitHub Actions."
     },
     {
+      "id": "github-citation-files",
+      "name": "GitHub citation files",
+      "kind": "citation-docs",
+      "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-citation-files",
+      "purpose": "GitHub repository citation metadata and Cite this repository behavior."
+    },
+    {
+      "id": "citation-file-format",
+      "name": "Citation File Format",
+      "kind": "citation-docs",
+      "url": "https://citation-file-format.github.io/",
+      "purpose": "CITATION.cff format and software citation metadata."
+    },
+    {
       "id": "openlibrary-api",
       "name": "Open Library APIs",
       "kind": "catalog-docs",

@@ -49,6 +49,8 @@ jobs:
 
       - name: Validate sourced catalog
         run: cyber-library-catalog validate
+      - name: Validate repository references
+        run: cyber-library-references check
       - name: Validate Markdown links
         run: cyber-library-github check
       - name: Validate browser JavaScript

@@ -87,8 +87,19 @@
 - [x] catalog/Markdown/JavaScript/static-build validation before direct commit
 - [x] validated GitHub Actions site artifact produced before catalog commit
 
+## v3.4 — Citation and synchronized reference layer
+
+- [x] GitHub-native root `CITATION.cff` using Citation File Format 1.2.0
+- [x] machine-readable reference registry remains canonical in `references/sources.json`
+- [x] deterministic root `REFERENCES.md` generated from the reference registry
+- [x] `cyber-library-references render` and `check` commands
+- [x] unique source ID / URL and HTTPS validation
+- [x] reference synchronization tests plus release-version citation check
+- [x] CI, Pages and catalog-maintenance workflows enforce reference consistency
+- [x] official GitHub citation and CFF documentation included in the reference registry
+
 ## Completion boundary
 
-The planned repository roadmap is complete through v3.3. GitHub-only mode is the first-class public and maintenance path: code, sourced records, references, validation, static builds, Actions artifacts and routine ISBN ingestion live inside GitHub.
+The planned repository roadmap is complete through v3.4. GitHub-only mode is the first-class public and maintenance path: code, sourced records, references, citation metadata, validation, static builds, Actions artifacts and routine ISBN ingestion live inside GitHub.
 
 Large third-party bulk datasets are intentionally not committed wholesale into Git. The index/shard/manifest format provides a verifiable GitHub-native distribution boundary that can be partitioned into additional Actions or Release assets without changing the canonical model.

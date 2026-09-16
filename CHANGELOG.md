@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.4.0 — 2026-09-16
+
+- Added root `CITATION.cff` using Citation File Format 1.2.0 so GitHub can expose native repository citation metadata.
+- Added deterministic root `REFERENCES.md` generated from the canonical `references/sources.json` registry.
+- Added `cyber-library-references render` and `cyber-library-references check`.
+- Added validation for required reference fields, unique source IDs/URLs and HTTPS upstream URLs.
+- Added citation/reference regression tests, including release-version synchronization for `CITATION.cff`.
+- Added the official GitHub citation-file and Citation File Format documentation to the machine-readable source registry.
+- CI, GitHub Pages and Add ISBN workflows now reject reference-registry / Markdown drift before publishing output.
+
 ## 3.3.0 — 2026-09-16
 
 - Added `cyber-library-catalog add-isbn` to resolve an ISBN through the existing rate-safe Open Library client and write a commit-ready L0 record under `data/catalog/`.

@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use Cyber Library in research, documentation, analysis, or another published work, please cite this repository using the metadata below."
+title: "Cyber Library"
+type: software
+version: "3.4.0"
+date-released: 2026-09-16
+license: MIT
+repository-code: "https://github.com/HX-Wrdzgzs/cyber-library"
+url: "https://github.com/HX-Wrdzgzs/cyber-library"
+authors:
+  - name: "Cyber Library contributors"
+keywords:
+  - books
+  - ISBN
+  - bibliographic metadata
+  - knowledge graph
+  - digital library
+  - GitHub Pages
