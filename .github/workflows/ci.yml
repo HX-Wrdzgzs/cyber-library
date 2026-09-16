@@ -11,7 +11,7 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -19,6 +19,10 @@ jobs:
       - run: python -m pip install -e .
       - run: python -m compileall -q src
       - run: python -m unittest discover -s tests -v
+      - run: node --check web/github.js
+      - run: node --check web/app.js
+      - run: node --check web/knowledge.js
+      - run: cyber-library-github check
       - run: cyber-library isbn 0-306-40615-2
       - run: cyber-library space 9780306406157
       - run: cyber-library categories
@@ -34,3 +38,13 @@ jobs:
       - run: cyber-library-export universe --db /tmp/cyber-export.sqlite3 --out /tmp/cyber-universe --max-level 1
       - run: cyber-library-export analyses --db /tmp/cyber-export.sqlite3 --out /tmp/cyber-analyses
       - run: cyber-library-deploy status
+      - name: Build GitHub-only site
+        if: matrix.python-version == '3.13'
+        run: cyber-library-github build --out _site
+      - name: Upload GitHub-only site artifact
+        if: matrix.python-version == '3.13'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyber-library-github-site
+          path: _site
+          if-no-files-found: error

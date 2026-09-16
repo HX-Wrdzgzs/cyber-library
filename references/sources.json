@@ -1,0 +1,74 @@
+{
+  "sources": [
+    {
+      "id": "github-pages-workflows",
+      "name": "GitHub Pages custom workflows",
+      "kind": "platform-docs",
+      "url": "https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages",
+      "purpose": "Static-site build and deployment through GitHub Actions."
+    },
+    {
+      "id": "openlibrary-api",
+      "name": "Open Library APIs",
+      "kind": "catalog-docs",
+      "url": "https://openlibrary.org/developers/api",
+      "purpose": "Low-volume human-triggered catalog lookup guidance and rate limits."
+    },
+    {
+      "id": "openlibrary-dumps",
+      "name": "Open Library Data Dumps",
+      "kind": "catalog-data",
+      "url": "https://openlibrary.org/developers/dumps",
+      "purpose": "Bulk monthly catalog snapshots."
+    },
+    {
+      "id": "wikidata-query-service",
+      "name": "Wikidata Query Service",
+      "kind": "authority-data",
+      "url": "https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help",
+      "purpose": "External entity and authority reconciliation."
+    },
+    {
+      "id": "crossref-rest",
+      "name": "Crossref REST API",
+      "kind": "identifier-data",
+      "url": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/",
+      "purpose": "DOI metadata and relationship evidence."
+    },
+    {
+      "id": "crossref-filters",
+      "name": "Crossref REST API filters",
+      "kind": "identifier-data",
+      "url": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/rest-api-filters/",
+      "purpose": "Exact ISBN filter behavior."
+    },
+    {
+      "id": "loc-z3950",
+      "name": "Library of Congress Z39.50/SRU access",
+      "kind": "national-library",
+      "url": "https://www.loc.gov/z3950/",
+      "purpose": "LC bibliographic and authority lookup endpoints."
+    },
+    {
+      "id": "opensearch-bulk",
+      "name": "OpenSearch Bulk API",
+      "kind": "deployment-docs",
+      "url": "https://docs.opensearch.org/latest/api-reference/document-apis/bulk/",
+      "purpose": "Optional rebuildable search mirror."
+    },
+    {
+      "id": "qdrant-upsert",
+      "name": "Qdrant Upsert Points API",
+      "kind": "deployment-docs",
+      "url": "https://api.qdrant.tech/api-reference/points/upsert-points",
+      "purpose": "Optional rebuildable ANN/vector mirror."
+    },
+    {
+      "id": "isbn-visualization",
+      "name": "phiresky/isbn-visualization",
+      "kind": "prior-art",
+      "url": "https://github.com/phiresky/isbn-visualization",
+      "purpose": "Prior-art reference only; Cyber Library's Hilbert implementation is clean-room."
+    }
+  ]
+}

@@ -1,15 +1,24 @@
 # Changelog
 
+## 3.1.0 — 2026-09-16
+
+- Made GitHub-only operation a first-class public deployment path using repository data, GitHub Actions and GitHub Pages.
+- Added `cyber-library-github build` to generate a Pages-ready static site with `.nojekyll`, static catalog, project metadata and reference data.
+- Added `cyber-library-github check` to validate repository-local Markdown links.
+- Added a browser static API shim so the shared UI can search committed records, resolve committed ISBNs, render Knowledge Space and ISBN Universe views, and perform deterministic browser-local text analysis without a server.
+- Added automatic fallback to the normal Python REST API when static site data is absent.
+- Added a GitHub Pages workflow and CI-built static-site artifact.
+- Added machine-readable `references/sources.json`, human-readable `docs/references.md`, and `docs/github-only.md`.
+- Added a sourced committed Open Library ISBN record under `data/catalog/`.
+
 ## 3.0.0 — 2026-09-16
 
-- Added PostgreSQL catalog mirroring with GIN full-text indexes and optional PostGIS point materialization.
-- Added OpenSearch REST indexing/search adapter using `_bulk` and `_search`.
-- Added Qdrant vector adapter for large embedding indexes using collection upsert and points query APIs.
-- Added S3-compatible static artifact publishing for Universe/analysis exports.
-- Added Library of Congress LCDB ISBN reconciliation through SRU `bath.isbn`.
-- Added Library of Congress Name Authority File candidate lookup through SRU `bath.personalName` with `auto_merge=false`.
-- Added `cyber-library-deploy`, deployment extras, environment configuration, documentation and offline adapter tests.
-- Closed the planned repository roadmap while keeping adapter contracts open for future sources/backends.
+- Added PostgreSQL mirror support with GIN search indexes and optional PostGIS point materialization.
+- Added OpenSearch REST `_bulk` indexing and `_search` support.
+- Added Qdrant collection/upsert/query adapter for large embedding indexes.
+- Added S3-compatible publisher for static Universe and analysis artifacts.
+- Added Library of Congress LCDB ISBN and Name Authority File SRU adapters.
+- Added `cyber-library-deploy` and offline deployment adapter tests.
 
 ## 2.1.0 — 2026-09-16
 

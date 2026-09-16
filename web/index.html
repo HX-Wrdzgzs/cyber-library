@@ -4,18 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
+  <meta name="description" content="Cyber Library — GitHub-only book and published-knowledge explorer.">
   <title>Cyber Library</title>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <div class="noise"></div>
   <main class="shell">
     <header class="hero">
-      <div class="eyebrow">CYBER LIBRARY / BOOK KNOWLEDGE SYSTEM</div>
+      <div class="eyebrow">CYBER LIBRARY / GITHUB-ONLY KNOWLEDGE SYSTEM</div>
       <div class="hero-grid">
         <div>
           <h1>在出版知识中航行。</h1>
-          <p class="lede">检索图书、解析 ISBN、查看来源证据、生成结构化解读、知识图谱与 ISBN 宇宙。目录事实与 AI/算法分析分层保存。</p>
+          <p class="lede">检索图书、查看来源证据、知识图谱与 ISBN 宇宙。GitHub Pages 模式不需要独立服务器：目录、索引和引用由仓库与 GitHub Actions 生成。</p>
         </div>
         <div class="stats" id="stats">
           <div><strong>—</strong><span>Works</span></div>
@@ -38,12 +39,12 @@
         <form id="search-form">
           <label for="query">书名 / 作者 / 主题 / ISBN</label>
           <div class="search-row">
-            <input id="query" autocomplete="off" placeholder="例如：machine learning / 三体 / 9780306406157">
+            <input id="query" autocomplete="off" placeholder="例如：Jane Austen / Literature / 9780141439518">
             <select id="category"><option value="">全部分类</option></select>
             <button class="primary" type="submit">检索</button>
           </div>
         </form>
-        <p class="status" id="search-status">ISBN 会直接解析；其他文本走本地目录搜索，本地无结果时可低频回退到 Open Library。</p>
+        <p class="status" id="search-status">GitHub Pages 下检索仓库已提交的静态目录；本地 API 模式仍可查询完整 SQLite 目录。</p>
       </div>
 
       <div class="search-results" id="search-results"></div>
@@ -52,10 +53,7 @@
         <div class="book-head panel">
           <div class="cover-wrap"><img id="cover" alt="Book cover" hidden></div>
           <div class="book-meta">
-            <div class="meta-top">
-              <span class="pill" id="analysis-level">L0</span>
-              <span class="mono muted" id="edition-id"></span>
-            </div>
+            <div class="meta-top"><span class="pill" id="analysis-level">L0</span><span class="mono muted" id="edition-id"></span></div>
             <h2 id="book-title"></h2>
             <p class="authors" id="authors"></p>
             <div class="facts" id="facts"></div>
@@ -64,49 +62,23 @@
         </div>
 
         <div class="detail-grid">
-          <article class="panel">
-            <div class="section-kicker">30 秒解读</div>
-            <p id="brief" class="prose"></p>
-            <div class="section-kicker">总结</div>
-            <p id="summary" class="prose"></p>
-          </article>
-          <article class="panel">
-            <div class="section-kicker">证据 / Provenance</div>
-            <ul id="sources" class="source-list"></ul>
-            <ul id="warnings" class="warnings"></ul>
-          </article>
+          <article class="panel"><div class="section-kicker">30 秒解读</div><p id="brief" class="prose"></p><div class="section-kicker">总结</div><p id="summary" class="prose"></p></article>
+          <article class="panel"><div class="section-kicker">证据 / Provenance</div><ul id="sources" class="source-list"></ul><ul id="warnings" class="warnings"></ul></article>
         </div>
 
         <article class="panel">
-          <div class="section-kicker">仔细解读</div>
-          <p id="detailed" class="prose"></p>
-          <div class="mini-columns">
-            <div><h3>核心主题</h3><ul id="themes"></ul></div>
-            <div><h3>关键点</h3><ul id="key-points"></ul></div>
-          </div>
+          <div class="section-kicker">仔细解读</div><p id="detailed" class="prose"></p>
+          <div class="mini-columns"><div><h3>核心主题</h3><ul id="themes"></ul></div><div><h3>关键点</h3><ul id="key-points"></ul></div></div>
         </article>
 
         <div class="detail-grid">
-          <article class="panel">
-            <div class="section-kicker">目录 / 大纲</div>
-            <ol id="toc" class="toc"></ol>
-          </article>
-          <article class="panel">
-            <div class="section-kicker">章节摘要</div>
-            <div id="chapter-summaries" class="chapter-list"></div>
-          </article>
+          <article class="panel"><div class="section-kicker">目录 / 大纲</div><ol id="toc" class="toc"></ol></article>
+          <article class="panel"><div class="section-kicker">章节摘要</div><div id="chapter-summaries" class="chapter-list"></div></article>
         </div>
 
         <div class="detail-grid">
-          <article class="panel">
-            <div class="section-kicker">思维导图</div>
-            <div id="mindmap" class="mindmap"></div>
-          </article>
-          <article class="panel graph-panel">
-            <div class="section-kicker">知识图谱</div>
-            <canvas id="graph-canvas"></canvas>
-            <p class="status" id="graph-status"></p>
-          </article>
+          <article class="panel"><div class="section-kicker">思维导图</div><div id="mindmap" class="mindmap"></div></article>
+          <article class="panel graph-panel"><div class="section-kicker">知识图谱</div><canvas id="graph-canvas"></canvas><p class="status" id="graph-status"></p></article>
         </div>
       </section>
     </section>
@@ -114,87 +86,48 @@
     <section class="view" id="view-knowledge">
       <div class="panel">
         <div class="section-kicker">Knowledge Space / 跨作品导航</div>
-        <form id="knowledge-form">
-          <div class="search-row">
-            <select id="knowledge-mode">
-              <option value="concept">主题 / 概念图</option>
-              <option value="author">作者时间线</option>
-              <option value="publisher">出版社视图</option>
-            </select>
-            <input id="knowledge-query" autocomplete="off" placeholder="例如：Machine learning / 刘慈欣 / Example Press">
-            <button class="primary" type="submit">构建</button>
-          </div>
-        </form>
-        <p class="status" id="knowledge-status">从本地 canonical catalog 构建，不调用 LLM 猜关系。</p>
+        <form id="knowledge-form"><div class="search-row"><select id="knowledge-mode"><option value="concept">主题 / 概念图</option><option value="author">作者时间线</option><option value="publisher">出版社视图</option></select><input id="knowledge-query" autocomplete="off" placeholder="例如：Literature / Jane Austen / Penguin Classics"><button class="primary" type="submit">构建</button></div></form>
+        <p class="status" id="knowledge-status">从 committed canonical/static catalog 构建，不调用 LLM 猜关系。</p>
       </div>
-      <article class="panel">
-        <pre id="knowledge-output" class="mono prose" style="white-space:pre-wrap;overflow:auto;max-height:70vh">选择一种视图并输入查询。</pre>
-      </article>
+      <article class="panel"><pre id="knowledge-output" class="mono prose" style="white-space:pre-wrap;overflow:auto;max-height:70vh">选择一种视图并输入查询。</pre></article>
     </section>
 
     <section class="view" id="view-universe">
       <div class="panel universe-toolbar">
-        <div>
-          <label for="universe-query">在 ISBN 空间高亮</label>
-          <input id="universe-query" placeholder="主题 / 书名；留空显示本地目录">
-        </div>
-        <div>
-          <label for="universe-category">分类</label>
-          <select id="universe-category"><option value="">全部</option></select>
-        </div>
-        <button id="universe-refresh" class="primary">刷新</button>
-        <button id="universe-reset">重置视图</button>
+        <div><label for="universe-query">在 ISBN 空间高亮</label><input id="universe-query" placeholder="主题 / 书名；留空显示已提交目录"></div>
+        <div><label for="universe-category">分类</label><select id="universe-category"><option value="">全部</option></select></div>
+        <button id="universe-refresh" class="primary">刷新</button><button id="universe-reset">重置视图</button>
       </div>
-      <div class="panel universe-panel">
-        <canvas id="universe-canvas"></canvas>
-        <div class="universe-hud">
-          <span id="universe-count">0 points</span>
-          <span>滚轮缩放 · 拖动平移 · 点击图书</span>
-        </div>
-      </div>
+      <div class="panel universe-panel"><canvas id="universe-canvas"></canvas><div class="universe-hud"><span id="universe-count">0 points</span><span>滚轮缩放 · 拖动平移 · 点击图书</span></div></div>
       <div id="universe-selected" class="panel compact hidden"></div>
     </section>
 
     <section class="view" id="view-fulltext">
       <div class="panel">
-        <div class="section-kicker">本地 / 已授权全文分析</div>
-        <p class="status">服务器不需要保存原始正文。提交后生成结构化分析；必须声明你拥有合法分析权限。</p>
+        <div class="section-kicker">浏览器本地全文分析</div>
+        <p class="status">GitHub Pages 模式下文本仅在当前浏览器内执行确定性分析，不上传正文；本地 Python 模式仍支持完整 L3/LLM 流程。仅处理你有权分析的文本。</p>
         <form id="fulltext-form">
-          <div class="form-grid">
-            <label>标题<input id="fulltext-title" placeholder="可选"></label>
-            <label>关联 ISBN<input id="fulltext-isbn" placeholder="可选"></label>
-            <label>权限依据
-              <select id="fulltext-rights" required>
-                <option value="user-provided">user-provided</option>
-                <option value="public-domain">public-domain</option>
-                <option value="open-license">open-license</option>
-                <option value="licensed">licensed</option>
-              </select>
-            </label>
-          </div>
-          <label>正文<textarea id="fulltext-text" rows="15" placeholder="粘贴你有权分析的文本。CLI 还支持 TXT / Markdown / EPUB / PDF。"></textarea></label>
-          <button class="primary" type="submit">生成完整分析</button>
-          <span id="fulltext-status" class="status"></span>
+          <div class="form-grid"><label>标题<input id="fulltext-title" placeholder="可选"></label><label>关联 ISBN<input id="fulltext-isbn" placeholder="可选"></label><label>权限依据<select id="fulltext-rights" required><option value="user-provided">user-provided</option><option value="public-domain">public-domain</option><option value="open-license">open-license</option><option value="licensed">licensed</option></select></label></div>
+          <label>正文<textarea id="fulltext-text" rows="15" placeholder="粘贴你有权分析的文本。"></textarea></label>
+          <button class="primary" type="submit">本地生成分析</button><span id="fulltext-status" class="status"></span>
         </form>
       </div>
     </section>
 
     <section class="view" id="view-about">
       <div class="panel prose">
-        <h2>这个项目在做什么</h2>
-        <p>Cyber Library 把 <strong>Work（作品）</strong>、<strong>Edition（版本）</strong>、ISBN 与知识分类分开建模。ISBN 空间只表示出版标识符，不拿 ISBN 前缀冒充内容分类。</p>
-        <p>公开目录层可以来自 Open Library 月度 dump；实时 API 仅用于低频的人触发查询。全文层只分析公版、开放许可、已授权或用户主动提供的内容。</p>
-        <p>知识空间从目录中显式存在的作者、主题、出版社与版本关系构建，不把模型联想当作事实关系。</p>
-        <p>ISBN 宇宙使用 Cyber Library 独立实现的 Hilbert 坐标系统，不包含 <code>phiresky/isbn-visualization</code> 源码。</p>
+        <h2>GitHub-only 架构</h2>
+        <p>Cyber Library 的默认公开形态由 GitHub repository、GitHub Actions 和 GitHub Pages 构成，不要求单独服务器。静态目录来自 <code>data/catalog/</code>，Actions 构建 <code>site-data/catalog.json</code>。</p>
+        <p>Work、Edition、ISBN 与知识分类分开建模；ISBN 空间只表示出版标识符。来源、许可和分析证据保持独立字段。</p>
+        <p>更大的 Open Library 月度 dump 不直接提交进 Git 仓库。仓库保存导入器、引用和可重建规则；公开 Pages 只发布适合 GitHub 静态托管的数据分片。</p>
+        <p>完整来源清单、官方文档与 prior art 见仓库 <code>docs/references.md</code> 与 <code>references/</code>。</p>
       </div>
     </section>
 
-    <footer>
-      <span>Cyber Library</span>
-      <span class="mono">Work → Edition → Evidence → Intelligence → Knowledge Space</span>
-    </footer>
+    <footer><span>Cyber Library</span><span class="mono">GitHub → Evidence → Knowledge Space → ISBN Universe</span></footer>
   </main>
-  <script src="/app.js"></script>
-  <script src="/knowledge.js"></script>
+  <script src="./github.js"></script>
+  <script src="./app.js"></script>
+  <script src="./knowledge.js"></script>
 </body>
 </html>

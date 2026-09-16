@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cyber-library"
-version = "3.0.0"
+version = "3.1.0"
 description = "Evidence-aware global book catalog, knowledge graph, analysis engine and ISBN universe."
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [{name = "Cyber Library contributors"}]
-keywords = ["books", "isbn", "open-library", "knowledge-graph", "library"]
+keywords = ["books", "isbn", "open-library", "knowledge-graph", "library", "github-pages"]
 dependencies = []
 
 [project.optional-dependencies]
@@ -29,6 +29,7 @@ cyber-library-knowledge = "cyber_library.navigation_cli:main"
 cyber-library-benchmark = "cyber_library.benchmark_cli:main"
 cyber-library-export = "cyber_library.export_cli:main"
 cyber-library-deploy = "cyber_library.deployment_cli:main"
+cyber-library-github = "cyber_library.github_site:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

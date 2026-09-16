@@ -1,3 +1,3 @@
 """Cyber Library: an evidence-aware book knowledge explorer."""
 
-__version__ = "3.0.0"
+__version__ = "3.1.0"

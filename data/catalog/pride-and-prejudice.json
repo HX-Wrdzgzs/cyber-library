@@ -1,0 +1,60 @@
+{
+  "work": {
+    "id": "catalog:work:pride-and-prejudice",
+    "title": "Pride and Prejudice",
+    "authors": ["Jane Austen"],
+    "subjects": ["Literature", "Fiction"],
+    "description": null,
+    "first_sentence": null,
+    "categories": ["Literature"],
+    "source_refs": ["openlibrary:OL3700132M"]
+  },
+  "edition": {
+    "id": "openlibrary:OL3700132M",
+    "work_id": "catalog:work:pride-and-prejudice",
+    "title": "Pride and Prejudice",
+    "language": "eng",
+    "publishers": ["Penguin Classics"],
+    "publish_date": "2003",
+    "page_count": 435,
+    "identifiers": {
+      "isbn10": ["0141439513"],
+      "isbn13": ["9780141439518"],
+      "openlibrary": ["OL3700132M"],
+      "lccn": ["2003265779"]
+    },
+    "cover_url": "https://covers.openlibrary.org/b/isbn/9780141439518-L.jpg",
+    "table_of_contents": [],
+    "physical_format": "Paperback",
+    "source_refs": ["openlibrary:OL3700132M"]
+  },
+  "analysis": {
+    "level": "L0",
+    "brief": "Metadata-only committed catalog record.",
+    "summary": "",
+    "detailed": "",
+    "tags": ["Literature", "Fiction"],
+    "categories": ["Literature"],
+    "themes": [],
+    "key_points": [],
+    "table_of_contents": [],
+    "outline": [],
+    "chapter_summaries": [],
+    "mindmap": null,
+    "confidence": 1.0,
+    "sources": ["https://openlibrary.org/books/OL3700132M/Pride_and_Prejudice"],
+    "warnings": ["No chapter-level or full-text claims are generated from metadata alone."],
+    "generated_at": null,
+    "model": null
+  },
+  "provenance": [
+    {
+      "source": "Open Library",
+      "source_id": "OL3700132M",
+      "url": "https://openlibrary.org/books/OL3700132M/Pride_and_Prejudice",
+      "retrieved_at": "2026-09-16",
+      "license": "Open Library metadata terms apply"
+    }
+  ],
+  "evidence": []
+}

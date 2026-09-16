@@ -53,6 +53,21 @@
 - [x] Library of Congress Name Authority File candidate adapter over SRU (`bath.personalName`)
 - [x] isolated deployment CLI, environment configuration and offline adapter tests
 
+## v3.1 — GitHub-only public deployment
+
+- [x] serverless GitHub Pages build from the shared `web/` UI
+- [x] browser static API shim with automatic fallback to the Python REST API
+- [x] committed sourced catalog records under `data/catalog/`
+- [x] deterministic static search, details, knowledge views and ISBN Universe points
+- [x] browser-local text analysis without a Cyber Library server
+- [x] `cyber-library-github build` static-site generator
+- [x] `cyber-library-github check` repository Markdown-link validation
+- [x] machine-readable `references/sources.json` and human-readable reference index
+- [x] GitHub Pages workflow plus normal CI static-site artifact build
+- [x] Pages-safe relative asset paths and `.nojekyll` output
+
 ## Completion boundary
 
-The planned repository roadmap is complete at v3.0. Future connectors can still be added through the existing source/deployment contracts without changing the canonical model. Cyber Library intentionally does not claim that any single catalog contains every book ever created; coverage grows through legitimate sources and identifiers while provenance remains explicit.
+The planned repository roadmap is complete through v3.1. GitHub-only mode is the first-class public deployment path and requires no separately managed server. The repository remains the reproducible source of truth for code, sourced static records, references, build rules and tests.
+
+Large third-party bulk datasets are intentionally not committed wholesale into Git. Coverage grows through sourced records and reproducible imports while provenance remains explicit.
