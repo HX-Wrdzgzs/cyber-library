@@ -40,10 +40,13 @@ jobs:
       - run: cyber-library-export universe --db /tmp/cyber-export.sqlite3 --out /tmp/cyber-universe --max-level 1
       - run: cyber-library-export analyses --db /tmp/cyber-export.sqlite3 --out /tmp/cyber-analyses
       - run: cyber-library-deploy status
-      - name: Build GitHub-only site
+      - name: Build static site for GitHub / Cloudflare Pages
         if: matrix.python-version == '3.13'
-        run: cyber-library-github build --out _site
-      - name: Upload GitHub-only site artifact
+        run: |
+          cyber-library-github build --out _site
+          test -f _site/_headers
+          grep -q "X-Content-Type-Options" _site/_headers
+      - name: Upload static site artifact
         if: matrix.python-version == '3.13'
         uses: actions/upload-artifact@v4
         with:
