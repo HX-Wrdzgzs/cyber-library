@@ -2,30 +2,30 @@
 
 > Explore humanity's published knowledge.
 
-Cyber Library is an open, machine-readable and AI-assisted map of books and published knowledge. It separates bibliographic facts from generated interpretation and separates physical publication identifiers from semantic knowledge navigation.
+Cyber Library is an open, machine-readable and AI-assisted map of books and published knowledge. It separates bibliographic facts from generated interpretation, and separates physical publication identifiers from semantic knowledge navigation.
 
-## What v2.1 includes
+## What v3 includes
 
 - Work / Edition / Author / Identifier separation
 - ISBN-10 / ISBN-13 validation and normalization
 - Open Library monthly-dump bootstrap with resumable downloads
 - bounded, checkpointed Open Library incremental refresh between dump snapshots
-- SQLite catalog with FTS/fallback search
+- SQLite canonical catalog with FTS/fallback search
 - optional OpenAI-compatible embeddings with lexical/semantic RRF ranking
-- Wikidata ISBN reconciliation and Crossref ISBN → DOI linking
-- Wikidata author authority candidates with ISNI / VIAF / LCNAF / GND identifiers
-- Crossref deposited DOI references and relation evidence
-- conservative multilingual subject normalization while preserving upstream raw records
+- Wikidata ISBN/entity reconciliation and author authority candidates
+- Crossref ISBN → DOI linking plus deposited citation/relation evidence
+- Library of Congress LCDB ISBN and Name Authority File SRU adapters
+- multilingual subject normalization while preserving upstream raw records
 - L0/L1/L2/L3 evidence-aware book intelligence
 - lawful TXT / Markdown / EPUB and optional PDF full-text analysis
 - per-book graphs and mind maps
 - cross-work Knowledge Space: concepts, author timelines and publisher views
 - clean-room Hilbert ISBN Universe with scalable density tiles
-- static Universe export for CDN/static hosting
-- portable, SHA-256-verified analysis bundles
+- static Universe export and portable SHA-256-verified analysis bundles
+- optional PostgreSQL/PostGIS, OpenSearch, Qdrant and S3-compatible deployment adapters
 - browser explorer, REST API, Docker and Python 3.11–3.13 CI
 
-Cyber Library does **not** claim ISBN or Open Library contains every book ever created. ISBN is an edition identifier, not a universal definition of a work and not a subject classification system.
+Cyber Library does **not** claim ISBN, Open Library, Library of Congress, Wikidata or any other single source contains every book ever created. ISBN is an edition identifier, not a universal definition of a work and not a subject classification system.
 
 ## Install
 
@@ -33,10 +33,13 @@ Cyber Library does **not** claim ISBN or Open Library contains every book ever c
 pip install -e .
 ```
 
-Optional PDF support:
+Optional features:
 
 ```bash
 pip install -e '.[pdf]'
+pip install -e '.[postgres]'
+pip install -e '.[s3]'
+pip install -e '.[deploy]'
 ```
 
 ## Quick start
@@ -49,7 +52,7 @@ cyber-library serve --db .cyber-library/catalog.sqlite3
 
 Open `http://127.0.0.1:8080`.
 
-## Build the local catalog
+## Build and refresh the local catalog
 
 For bulk catalog creation use Open Library's official monthly dumps rather than API crawling:
 
@@ -59,29 +62,14 @@ cyber-library bootstrap-openlibrary
 
 This downloads authors / works / editions with HTTP Range resume, imports them into SQLite, rebuilds search indexes, generates ISBN Universe density tiles and seeds the incremental-refresh checkpoint from dump `last_modified` timestamps.
 
-Import already-downloaded dumps:
-
-```bash
-cyber-library import-dump \
-  ol_dump_authors_latest.txt.gz \
-  ol_dump_works_latest.txt.gz \
-  ol_dump_editions_latest.txt.gz \
-  --db .cyber-library/catalog.sqlite3
-```
-
-## Incremental refresh
-
-Monthly dumps remain the bulk baseline. RecentChanges is only a bounded bridge between snapshots:
+Between snapshots, use the bounded RecentChanges bridge:
 
 ```bash
 cyber-library-refresh status --db .cyber-library/catalog.sqlite3
-cyber-library-refresh run \
-  --db .cyber-library/catalog.sqlite3 \
-  --max-changes 250 \
-  --max-documents 500
+cyber-library-refresh run --db .cyber-library/catalog.sqlite3
 ```
 
-The checkpoint advances only after the full selected window is observed and every selected document succeeds. Truncated windows or failures keep the checkpoint unchanged. See [`docs/refresh.md`](docs/refresh.md).
+The checkpoint advances only after the complete selected window succeeds. See [`docs/refresh.md`](docs/refresh.md).
 
 ## Search and semantic retrieval
 
@@ -96,18 +84,14 @@ Optional embeddings:
 ```bash
 export CYBER_LIBRARY_EMBEDDING_BASE_URL='http://127.0.0.1:8000/v1'
 export CYBER_LIBRARY_EMBEDDING_MODEL='your-embedding-model'
-export CYBER_LIBRARY_EMBEDDING_API_KEY='optional-key'
-
 cyber-library-semantic index --db .cyber-library/catalog.sqlite3
-cyber-library-semantic search "introductory books about galaxies" \
-  --db .cyber-library/catalog.sqlite3
 ```
 
-When an embedding index exists, normal search automatically uses hybrid Reciprocal Rank Fusion. Embedding-service failures fall back to lexical search.
+When an embedding index exists, normal search can use hybrid Reciprocal Rank Fusion. Embedding-service failures fall back to lexical search. See [`docs/semantic.md`](docs/semantic.md).
 
 ## Knowledge Space
 
-Knowledge Space is separate from ISBN Universe. It derives relations from explicit catalog facts, not LLM association.
+Knowledge Space is separate from ISBN Universe and derives relations from explicit catalog facts rather than model association.
 
 ```bash
 cyber-library-knowledge concept "Machine learning" --db .cyber-library/catalog.sqlite3
@@ -117,52 +101,36 @@ cyber-library-knowledge publisher "Publisher Name" --db .cyber-library/catalog.s
 
 The browser includes a **知识空间** tab. See [`docs/knowledge-space.md`](docs/knowledge-space.md).
 
-## External identifiers, authority and citation evidence
+## External sources and authority evidence
 
 ```bash
 cyber-library-source list
-cyber-library-source reconcile-all 9780306406157 \
-  --db .cyber-library/catalog.sqlite3
-cyber-library-source links 9780306406157 \
-  --db .cyber-library/catalog.sqlite3
-```
-
-Find same-label author authority candidates without auto-merging them:
-
-```bash
+cyber-library-source reconcile-all 9780306406157 --db .cyber-library/catalog.sqlite3
 cyber-library-source authority "Author Name" --source wikidata
-```
-
-Inspect Crossref-deposited DOI references/relations without recursively crawling targets:
-
-```bash
+cyber-library-source authority "Author Name" --source loc
 cyber-library-source citations 10.xxxx/example --source crossref
 ```
 
-Successful ISBN matches are persisted independently. Authority candidates stay candidates (`auto_merge=false`). Citation relationships remain source-labelled evidence. See [`docs/sources.md`](docs/sources.md).
+Successful source matches are kept as provenance-bearing external links rather than silently overwriting canonical bibliographic fields. Authority candidates never auto-merge same-name people. See [`docs/sources.md`](docs/sources.md).
 
-## ISBN Universe
+## ISBN Universe and portable artifacts
 
 ```bash
 cyber-library space 9780306406157
 cyber-library-scale rebuild --db .cyber-library/catalog.sqlite3
+cyber-library-export universe --db .cyber-library/catalog.sqlite3 --out public-universe
 ```
 
-The browser uses density tiles at distant zooms and concrete edition points at close/filtered zooms. The Hilbert mapping is an independent implementation; no `phiresky/isbn-visualization` source is copied.
+The Hilbert mapping is an independent implementation; no `phiresky/isbn-visualization` source is copied. See [`docs/universe.md`](docs/universe.md) and [`docs/export.md`](docs/export.md).
 
-Export static map data:
+Portable analysis cache:
 
 ```bash
-cyber-library-export universe \
-  --db .cyber-library/catalog.sqlite3 \
-  --out public-universe
+cyber-library-export analyses --db .cyber-library/catalog.sqlite3 --out analysis-bundle
+cyber-library-export import-analyses analysis-bundle --db another-catalog.sqlite3
 ```
 
-See [`docs/universe.md`](docs/universe.md) and [`docs/export.md`](docs/export.md).
-
-## Book intelligence
-
-Generated output is explicitly bounded by evidence:
+## Evidence-aware book intelligence
 
 ```text
 L0  bibliographic metadata only
@@ -176,35 +144,47 @@ A metadata-only record must not pretend to have chapter-level understanding.
 Analyze a file you are allowed to process:
 
 ```bash
-cyber-library analyze-file book.epub \
-  --rights user-provided \
-  --isbn 9780140328721
+cyber-library analyze-file book.epub --rights user-provided --isbn 9780140328721
 ```
 
 Supported rights declarations include `public-domain`, `open-license`, `licensed` and `user-provided`.
 
-Optional OpenAI-compatible LLM:
+## Production deployment adapters
 
-```bash
-export CYBER_LIBRARY_LLM_BASE_URL='http://127.0.0.1:8000/v1'
-export CYBER_LIBRARY_LLM_MODEL='your-model'
-export CYBER_LIBRARY_LLM_API_KEY='optional-key'
+The portable SQLite catalog remains the source of truth. v3 adds rebuildable production mirrors:
+
+```text
+SQLite canonical catalog
+        |
+        +--> PostgreSQL / optional PostGIS
+        +--> OpenSearch
+        +--> Qdrant
+        +--> static exports --> S3 / R2 / MinIO
 ```
 
-Without an LLM, deterministic local analysis remains available.
-
-## Portable analysis cache
+Inspect configuration without contacting services:
 
 ```bash
-cyber-library-export analyses \
-  --db .cyber-library/catalog.sqlite3 \
-  --out analysis-bundle
-
-cyber-library-export import-analyses analysis-bundle \
-  --db another-catalog.sqlite3
+cyber-library-deploy status
 ```
 
-The bundle manifest contains record count, source references and SHA-256 integrity data. See [`docs/export.md`](docs/export.md).
+Examples:
+
+```bash
+export CYBER_LIBRARY_POSTGRES_DSN='postgresql://user:pass@host/db'
+cyber-library-deploy postgres-sync --db .cyber-library/catalog.sqlite3
+
+export CYBER_LIBRARY_OPENSEARCH_URL='https://search.example'
+cyber-library-deploy opensearch-sync --db .cyber-library/catalog.sqlite3
+
+export CYBER_LIBRARY_QDRANT_URL='http://127.0.0.1:6333'
+cyber-library-deploy qdrant-sync --db .cyber-library/catalog.sqlite3 --model your-embedding-model
+
+export CYBER_LIBRARY_S3_BUCKET='cyber-library-public'
+cyber-library-deploy publish-dir public-universe
+```
+
+See [`docs/deployment-adapters.md`](docs/deployment-adapters.md).
 
 ## Bulk-import benchmark
 
@@ -212,7 +192,7 @@ The bundle manifest contains record count, source references and SHA-256 integri
 cyber-library-benchmark bulk --records 10000
 ```
 
-This generates deterministic synthetic Open Library-style dumps and runs the real importer. It is a regression/hardware-sizing tool, not a synthetic throughput guarantee for the full corpus. See [`docs/benchmark.md`](docs/benchmark.md).
+This generates deterministic synthetic Open Library-style dumps and runs the real importer. It is a regression/hardware-sizing tool, not a synthetic throughput guarantee for the full corpus.
 
 ## REST API
 
@@ -250,16 +230,16 @@ Author ─────┐
       │       │       │
      ISBN    ISBN   other IDs
       │
-      └── Wikidata / DOI / other external links
+      └── Wikidata / DOI / LoC / other external links
 ```
 
 ## Repository layout
 
 ```text
-src/cyber_library/   catalog, analysis, search, sources, refresh, exports and navigation
+src/cyber_library/   catalog, analysis, search, sources, refresh, exports and deployment adapters
 web/                 browser explorer
 schemas/             machine-readable entity/analysis schemas
-docs/                architecture, data, search, scaling, refresh and deployment docs
+docs/                architecture, data, search, scaling, sources and deployment docs
 tests/               unit/regression tests
 references/          prior-art references
 ```
@@ -270,4 +250,4 @@ Original Cyber Library source in this repository is MIT licensed. Third-party me
 
 ## Project status
 
-The local/portable v2.1 core is functional. PostgreSQL/PostGIS, OpenSearch, object-storage publishing, national-library connectors and large-scale ANN backends are optional deployment/source adapters, not prerequisites for the core catalog and knowledge-navigation model. See [`ROADMAP.md`](ROADMAP.md).
+The planned repository roadmap is complete at **v3.0.0**. The canonical local/portable core is functional, and production deployment/source extensions are implemented behind replaceable adapters. Future connectors can be added without changing the Work / Edition / Evidence model. See [`ROADMAP.md`](ROADMAP.md).

@@ -47,10 +47,12 @@ def registry() -> SourceRegistry:
 
 def register_builtin_sources() -> SourceRegistry:
     from .crossref import CrossrefAdapter
+    from .loc import LibraryOfCongressAdapter
     from .wikidata import WikidataAdapter
 
     builtins: dict[str, AdapterFactory] = {
         "crossref": CrossrefAdapter,
+        "loc": LibraryOfCongressAdapter,
         "wikidata": WikidataAdapter,
     }
     existing = set(_registry.names())

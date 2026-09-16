@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.0.0 — 2026-09-16
+
+- Added PostgreSQL catalog mirroring with GIN full-text indexes and optional PostGIS point materialization.
+- Added OpenSearch REST indexing/search adapter using `_bulk` and `_search`.
+- Added Qdrant vector adapter for large embedding indexes using collection upsert and points query APIs.
+- Added S3-compatible static artifact publishing for Universe/analysis exports.
+- Added Library of Congress LCDB ISBN reconciliation through SRU `bath.isbn`.
+- Added Library of Congress Name Authority File candidate lookup through SRU `bath.personalName` with `auto_merge=false`.
+- Added `cyber-library-deploy`, deployment extras, environment configuration, documentation and offline adapter tests.
+- Closed the planned repository roadmap while keeping adapter contracts open for future sources/backends.
+
 ## 2.1.0 — 2026-09-16
 
 - Added exact-label Wikidata author authority candidate lookup.

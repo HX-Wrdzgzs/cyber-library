@@ -27,8 +27,10 @@ jobs:
       - run: cyber-library-source list
       - run: cyber-library-source status wikidata --cache /tmp/cyber-source-cache.sqlite3
       - run: cyber-library-source status crossref --cache /tmp/cyber-source-cache.sqlite3
+      - run: cyber-library-source status loc --cache /tmp/cyber-source-cache.sqlite3
       - run: cyber-library-refresh status --db /tmp/cyber-refresh.sqlite3
       - run: cyber-library-knowledge concept test --db /tmp/cyber-knowledge.sqlite3
       - run: cyber-library-benchmark bulk --records 12 --workdir /tmp/cyber-benchmark
       - run: cyber-library-export universe --db /tmp/cyber-export.sqlite3 --out /tmp/cyber-universe --max-level 1
       - run: cyber-library-export analyses --db /tmp/cyber-export.sqlite3 --out /tmp/cyber-analyses
+      - run: cyber-library-deploy status

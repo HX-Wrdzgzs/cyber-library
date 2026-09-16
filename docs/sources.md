@@ -20,38 +20,53 @@ It also supports **author authority candidates** by exact label. Candidate resul
 Authority results are candidates only. They carry `auto_merge: false`; Cyber Library does not attach a same-name person to a local Author automatically.
 
 ```bash
-cyber-library-source authority "Author Name" \
-  --source wikidata
+cyber-library-source authority "Author Name" --source wikidata
 ```
 
-Default endpoint:
-
-```text
-https://query.wikidata.org/sparql
-```
-
-Override with `CYBER_LIBRARY_WIKIDATA_SPARQL_URL`.
+Default endpoint: `https://query.wikidata.org/sparql`. Override with `CYBER_LIBRARY_WIKIDATA_SPARQL_URL`.
 
 ## Crossref
 
 The Crossref adapter uses the public REST API and exact `filter=isbn:` matching to link eligible book-like records to deposited DOIs. Source metadata remains an external link rather than silently replacing the canonical record.
 
-It can also retrieve the metadata for one DOI and expose **deposited citation/relation evidence**:
+It can also retrieve one DOI and expose deposited citation/relation evidence:
 
 ```bash
-cyber-library-source citations 10.xxxx/example \
-  --source crossref
+cyber-library-source citations 10.xxxx/example --source crossref
 ```
 
-The returned graph contains DOI references that are actually present in the Crossref deposit, deposited relation objects, and Crossref's `is-referenced-by-count` signal. It does not recursively crawl every referenced work and does not invent missing influence edges.
+The returned graph contains DOI references actually present in the Crossref deposit, deposited relation objects, and Crossref's `is-referenced-by-count` signal. It does not recursively crawl every referenced work and does not invent missing influence edges.
 
-Default endpoint:
+Default endpoint: `https://api.crossref.org`. Override with `CYBER_LIBRARY_CROSSREF_BASE_URL`. Set `CYBER_LIBRARY_CONTACT` so requests can identify the client; the shared JSON cache avoids unnecessary repeated requests.
+
+## Library of Congress SRU
+
+The `loc` adapter uses the Library of Congress SRU/Z39.50 gateway rather than scraping catalog pages.
+
+For bibliographic reconciliation it queries LCDB with `bath.isbn` and requests MARCXML. Matches are accepted only when an ISBN extracted from MARC field 020 normalizes to the requested ISBN-13.
+
+```bash
+cyber-library-source reconcile 9780306406157 \
+  --source loc \
+  --db .cyber-library/catalog.sqlite3
+```
+
+For people it queries the Library of Congress Name Authority File using `bath.personalName` and MADS records:
+
+```bash
+cyber-library-source authority "Author Name" --source loc
+```
+
+Name-authority results are candidates only and carry `auto_merge: false` / `candidate_only: true`. A name match is not treated as a unique-person proof.
+
+Default SRU endpoints are the official LC gateway:
 
 ```text
-https://api.crossref.org
+http://lx2.loc.gov:210/LCDB
+http://lx2.loc.gov:210/NAF
 ```
 
-Override with `CYBER_LIBRARY_CROSSREF_BASE_URL`. Set `CYBER_LIBRARY_CONTACT` so requests can identify the client; the shared JSON cache avoids unnecessary repeated requests.
+Override with `CYBER_LIBRARY_LOC_LCDB_URL` and `CYBER_LIBRARY_LOC_NAF_URL` when a deployment uses another SRU gateway or proxy.
 
 ## General CLI
 
@@ -59,6 +74,7 @@ Override with `CYBER_LIBRARY_CROSSREF_BASE_URL`. Set `CYBER_LIBRARY_CONTACT` so 
 cyber-library-source list
 cyber-library-source status wikidata
 cyber-library-source status crossref
+cyber-library-source status loc
 ```
 
 ISBN reconciliation against one source:

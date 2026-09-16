@@ -43,14 +43,16 @@
 - [x] Crossref relation metadata and `is-referenced-by-count` influence signal
 - [x] source CLI commands for authority and citation evidence
 
-## Optional deployment adapters
+## v3.0 — Production deployment adapters and additional library authority
 
-These are deployment extensions rather than blockers for the completed local/portable core:
+- [x] PostgreSQL mirror with GIN search indexes and optional PostGIS point materialization
+- [x] OpenSearch REST adapter using `_bulk` and `_search`
+- [x] S3-compatible object-storage publisher for static Universe / analysis artifacts
+- [x] Qdrant ANN/vector adapter using collection upsert and points query APIs
+- [x] Library of Congress LCDB ISBN adapter over SRU (`bath.isbn`)
+- [x] Library of Congress Name Authority File candidate adapter over SRU (`bath.personalName`)
+- [x] isolated deployment CLI, environment configuration and offline adapter tests
 
-- [ ] PostgreSQL/PostGIS backend adapter
-- [ ] OpenSearch backend adapter
-- [ ] external object-storage publisher for static Universe artifacts
-- [ ] ANN/vector-database adapter for very large embedding indexes
-- [ ] additional national-library / authority-file adapters
+## Completion boundary
 
-Cyber Library intentionally does not claim that any single catalog contains every book ever created. Coverage grows by legitimate sources and identifiers while provenance remains explicit.
+The planned repository roadmap is complete at v3.0. Future connectors can still be added through the existing source/deployment contracts without changing the canonical model. Cyber Library intentionally does not claim that any single catalog contains every book ever created; coverage grows through legitimate sources and identifiers while provenance remains explicit.
