@@ -2,9 +2,34 @@
 
 > Explore humanity's published knowledge — directly from GitHub.
 
-Cyber Library is an open, evidence-aware map of books and published knowledge. It separates Work, Edition, identifiers, provenance and generated interpretation. The default public deployment is **GitHub-only**: repository + GitHub Actions + GitHub Pages. No separately managed server is required.
+Cyber Library is an open, evidence-aware map of books and published knowledge. It separates Work, Edition, identifiers, provenance and generated interpretation. The canonical source, catalog maintenance, references and validation all stay in **GitHub**. The recommended public host is now **Cloudflare Pages**, with GitHub Pages kept as a fallback. No separately managed server is required.
 
-## GitHub-only quick start
+## Recommended public deployment — Cloudflare Pages
+
+Cloudflare Pages connects directly to this GitHub repository and rebuilds production whenever `main` changes.
+
+Use these Pages settings:
+
+| Setting | Value |
+| --- | --- |
+| Framework preset | None |
+| Production branch | `main` |
+| Root directory | `/` |
+| Build command | `python -m pip install -e . && cyber-library-catalog validate && cyber-library-references check && cyber-library-github check && cyber-library-github build --out _site` |
+| Build output directory | `_site` |
+
+Recommended environment variables:
+
+```text
+PYTHON_VERSION=3.13.3
+SKIP_DEPENDENCY_INSTALL=1
+```
+
+The complete setup and custom-domain notes are in [`docs/cloudflare-pages.md`](docs/cloudflare-pages.md). Cloudflare's upstream deployment/build/domain/header documentation is registered in [`references/sources.json`](references/sources.json) and rendered into [`REFERENCES.md`](REFERENCES.md).
+
+The existing [GitHub Pages workflow](.github/workflows/pages.yml) remains available as a backup deployment path. Both hosts consume the same generated `_site` output.
+
+## GitHub-only build
 
 Everything needed for the public project lives in this repository.
 
@@ -16,13 +41,7 @@ cyber-library-github check
 cyber-library-github build --out _site
 ```
 
-One-time Pages setup remains inside GitHub:
-
-1. Repository **Settings → Pages**.
-2. **Build and deployment → Source → GitHub Actions**.
-3. **Actions → GitHub Pages → Run workflow**.
-
-The deployment workflow is [`.github/workflows/pages.yml`](.github/workflows/pages.yml). See [`docs/github-only.md`](docs/github-only.md).
+No API server is required for the static deployment.
 
 ## Add books without leaving GitHub
 
@@ -39,7 +58,7 @@ Existing ISBN records are not overwritten unless overwrite is explicitly request
 
 ## GitHub static data model
 
-The Pages build avoids one ever-growing full-record JSON file:
+The static build avoids one ever-growing full-record JSON file:
 
 ```text
 site-data/
@@ -53,7 +72,7 @@ site-data/
 
 Search, Knowledge Space and ISBN Universe load only `index.json`. Opening a book lazily fetches its full record shard. The manifest gives every generated data file an integrity digest for GitHub Actions / Release distribution.
 
-## What GitHub Pages mode supports
+## What static mode supports
 
 - committed catalog search;
 - ISBN resolution for committed records;
@@ -63,13 +82,13 @@ Search, Knowledge Space and ISBN Universe load only `index.json`. Opening a book
 - browser-local deterministic text analysis — pasted text is not uploaded to a Cyber Library server;
 - machine-readable source/reference index;
 - GitHub-native ISBN catalog ingestion and validation;
-- one shared UI used by both GitHub static mode and the optional Python REST API.
+- one shared UI used by Cloudflare Pages, GitHub Pages and the optional Python REST API.
 
 Static source records live under [`data/catalog/`](data/catalog/). [`data/catalog/pride-and-prejudice.json`](data/catalog/pride-and-prejudice.json) is a sourced real-ISBN example; [`data/samples/book.sample.json`](data/samples/book.sample.json) is a synthetic model example.
 
 ## Citation and references
 
-Cyber Library now exposes both project-level citation metadata and a synchronized upstream reference index.
+Cyber Library exposes both project-level citation metadata and a synchronized upstream reference index.
 
 - GitHub-native software citation: [`CITATION.cff`](CITATION.cff)
 - Generated root reference index: [`REFERENCES.md`](REFERENCES.md)
@@ -77,6 +96,7 @@ Cyber Library now exposes both project-level citation metadata and a synchronize
 - Machine-readable source registry: [`references/sources.json`](references/sources.json)
 - Licensing and data-rights notes: [`docs/licensing.md`](docs/licensing.md)
 - ISBN visualization prior-art note: [`references/isbn-visualization.md`](references/isbn-visualization.md)
+- Cloudflare Pages deployment guide: [`docs/cloudflare-pages.md`](docs/cloudflare-pages.md)
 
 GitHub recognizes `CITATION.cff` on the default branch and can expose **Cite this repository** metadata. The repository uses CFF 1.2.0. `REFERENCES.md` is generated deterministically from `references/sources.json` and CI rejects drift between them.
 
@@ -89,7 +109,7 @@ Generated interpretation is not bibliographic fact. Metadata, authority candidat
 
 ## GitHub Actions artifacts
 
-Normal CI validates Python 3.11–3.13, JavaScript syntax, sourced catalog records, reference synchronization, Markdown links and the complete GitHub-only build. The Python 3.13 job uploads `_site` as `cyber-library-github-site`, so a deployable build exists entirely in GitHub before Pages is enabled.
+Normal CI validates Python 3.11–3.13, JavaScript syntax, sourced catalog records, reference synchronization, Markdown links and the complete static build. The Python 3.13 job uploads `_site` as `cyber-library-github-site`, so a deployable build exists in GitHub independently of the hosting provider.
 
 The Add ISBN workflow also validates and builds before committing. This is deliberate because GitHub prevents pushes made with the workflow `GITHUB_TOKEN` from recursively starting another push workflow.
 
@@ -103,14 +123,14 @@ See [`docs/data-sources.md`](docs/data-sources.md) and [`docs/github-only.md`](d
 
 ## Optional local full catalog
 
-The GitHub-only path is the default public deployment, but the portable local catalog remains available for bulk data:
+The GitHub-backed static path is the default public deployment, but the portable local catalog remains available for bulk data:
 
 ```bash
 cyber-library bootstrap-openlibrary
 cyber-library serve --db .cyber-library/catalog.sqlite3
 ```
 
-The shared browser UI automatically falls back to the real `/api/*` endpoints when generated Pages data is absent.
+The shared browser UI automatically falls back to the real `/api/*` endpoints when generated static data is absent.
 
 ## Search and knowledge navigation
 
@@ -155,11 +175,11 @@ L2  source-backed structured material
 L3  lawful full-text analysis
 ```
 
-Local file analysis supports TXT / Markdown / EPUB and optional PDF when the user has rights to process the content. GitHub Pages mode uses deterministic browser-local text analysis. See [`docs/book-intelligence.md`](docs/book-intelligence.md).
+Local file analysis supports TXT / Markdown / EPUB and optional PDF when the user has rights to process the content. Static browser mode uses deterministic browser-local text analysis. See [`docs/book-intelligence.md`](docs/book-intelligence.md).
 
 ## Optional deployment adapters
 
-PostgreSQL/PostGIS, OpenSearch, Qdrant and S3-compatible adapters remain available but are **not required** by GitHub-only public deployment.
+PostgreSQL/PostGIS, OpenSearch, Qdrant and S3-compatible adapters remain available but are **not required** by the public Cloudflare/GitHub static deployment.
 
 ```bash
 cyber-library-deploy status
@@ -180,20 +200,20 @@ pip install -e '.[deploy]'
 ## Repository layout
 
 ```text
-.github/workflows/      CI, catalog maintenance and GitHub Pages workflows
-data/catalog/           sourced records included in GitHub builds
+.github/workflows/      CI, catalog maintenance and GitHub Pages fallback workflow
+data/catalog/           sourced records included in static builds
 data/samples/           synthetic schema examples
-docs/                   architecture, operation and source references
+docs/                   architecture, operation, Cloudflare and source references
 references/             machine-readable sources and prior-art notes
 src/cyber_library/      catalog, analysis, source, build, ingest and reference tooling
 tests/                  deterministic unit/regression tests
-web/                    shared browser explorer and GitHub static API shim
+web/                    shared browser explorer, static API shim and Cloudflare _headers
 CITATION.cff            GitHub-native software citation metadata
 REFERENCES.md           generated external reference index
 ```
 
 ## Project status
 
-The planned repository roadmap is complete through **v3.4.0**. GitHub-only mode now covers serving, routine ISBN maintenance, deterministic reference synchronization and GitHub-native software citation metadata.
+The planned repository roadmap is complete through **v3.4.0**. GitHub remains the canonical source/maintenance surface; Cloudflare Pages is the recommended public static host and GitHub Pages remains a compatible fallback.
 
-See [`ROADMAP.md`](ROADMAP.md) and [`CHANGELOG.md`](CHANGELOG.md).
+See [`ROADMAP.md`](ROADMAP.md), [`CHANGELOG.md`](CHANGELOG.md) and [`docs/cloudflare-pages.md`](docs/cloudflare-pages.md).
